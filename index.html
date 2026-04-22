@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hellas · Content Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a5c38;--green-mid:#2a7a4e;--green-light:#e6f3ec;--green-xlight:#f2faf5;
+  --gold:#b8941f;--gold-light:#fdf6e0;--gold-border:rgba(184,148,31,0.25);
+  --slate:#1c2b3a;--slate-mid:#2d4156;
+  --ig:#c13584;--ig-light:#fceef8;
+  --li:#0077b5;--li-light:#e8f4fb;
+  --fb:#1877f2;--fb-light:#eaf2ff;
+  --tw:#333;--tw-light:#f0f0f0;
+  --gray-50:#f8f9fa;--gray-100:#f0f1f2;--gray-200:#e2e4e6;--gray-300:#cdd0d3;
+  --gray-400:#9aa1a9;--gray-600:#5a6370;--gray-700:#3f4850;--gray-800:#2c3338;--gray-900:#1a1e22;
+  --white:#fff;
+  --radius:10px;--radius-sm:6px;--radius-lg:14px;
+  --edit-ring:2px solid #4a90e2;
+}
+html{font-size:15px}
+body{font-family:'Barlow',sans-serif;background:var(--gray-50);color:var(--gray-900);min-height:100vh;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:var(--slate);color:white;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:200;flex-shrink:0}
+.tb-brand{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:800;letter-spacing:0.04em}
+.tb-brand span{color:#5ec98a}
+.tb-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.07em;text-transform:uppercase;margin-top:1px}
+.tb-actions{display:flex;gap:8px;align-items:center}
+.save-indicator{font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:5px;transition:color 0.3s}
+.save-indicator.saved{color:#5ec98a}
+.save-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.tb-btn{padding:5px 13px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;border:none;transition:all 0.15s}
+.tb-ghost{background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.18)}
+.tb-ghost:hover{background:rgba(255,255,255,0.18)}
+.tb-danger{background:rgba(220,50,50,0.2);color:#ff8080;border:1px solid rgba(220,50,50,0.3)}
+.tb-danger:hover{background:rgba(220,50,50,0.35)}
+
+/* LAYOUT */
+.app{display:flex;flex:1;height:calc(100vh - 54px);overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:210px;background:var(--white);border-right:1px solid var(--gray-200);flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column}
+.sb-section{padding:1rem 1rem 0.4rem;font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-400)}
+.sb-tab{display:flex;align-items:center;gap:9px;padding:9px 1rem;cursor:pointer;border-left:3px solid transparent;transition:all 0.12s}
+.sb-tab:hover{background:var(--gray-50)}
+.sb-tab.active{background:var(--green-xlight);border-left-color:var(--green)}
+.sb-num{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;width:20px;height:20px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gray-600)}
+.sb-tab.active .sb-num{background:var(--green);color:white}
+.sb-name{font-size:12px;font-weight:600;color:var(--gray-800);display:block;line-height:1.15}
+.sb-tab.active .sb-name{color:var(--green)}
+.sb-theme{font-size:10px;color:var(--gray-400);display:block}
+.sb-div{height:1px;background:var(--gray-100);margin:0.4rem 1rem}
+.sb-link{display:flex;align-items:center;gap:8px;padding:8px 1rem;cursor:pointer;font-size:12px;color:var(--gray-600);font-weight:500;transition:all 0.12s}
+.sb-link:hover{background:var(--gray-50);color:var(--gray-900)}
+.sb-link.active{color:var(--green)}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:1.75rem}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* EDIT MODE BANNER */
+.edit-banner{display:flex;align-items:center;justify-content:space-between;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:var(--radius);padding:10px 16px;margin-bottom:1.5rem;font-size:12px;color:var(--gold)}
+.edit-banner strong{font-weight:600}
+.edit-banner-tip{color:rgba(184,148,31,0.8)}
+
+/* MONTH HEADER */
+.mh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem}
+.mh-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:3px}
+.mh-title{font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;color:var(--gray-900);line-height:1;letter-spacing:-0.01em}
+.mh-badge{display:inline-block;margin-top:6px;background:var(--gold-light);color:var(--gold);font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:1px solid var(--gold-border)}
+.mh-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.view-tog{display:flex;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow:hidden;background:var(--white)}
+.vt{padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:'Barlow',sans-serif;color:var(--gray-600);transition:all 0.12s}
+.vt.active{background:var(--slate);color:white}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.sc{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1rem}
+.sc-lbl{font-size:10px;color:var(--gray-400);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px}
+.sc-val{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--gray-900);line-height:1}
+.sc-sub{font-size:10px;color:var(--gray-400);margin-top:3px}
+
+/* WEEK */
+.week{margin-bottom:1.75rem}
+.wk-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-400);margin-bottom:.65rem;display:flex;align-items:center;gap:8px}
+.wk-label::after{content:'';flex:1;height:1px;background:var(--gray-200)}
+.wk-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day.is-weekend{background:var(--gray-50)}
+.day.is-today .day-hd{background:var(--green);}.day.is-today .day-nm,.day.is-today .day-dt{color:white}
+
+/* DAY CARD */
+.day{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden}
+.day-hd{padding:6px 9px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--gray-100);background:var(--gray-50)}
+.day-nm{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-600)}
+.day-dt{font-size:10px;color:var(--gray-400)}
+.day-posts{padding:6px;display:flex;flex-direction:column;gap:4px}
+.add-post-btn{width:100%;padding:5px;border:1.5px dashed var(--gray-200);border-radius:var(--radius-sm);background:transparent;font-size:10px;color:var(--gray-400);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s;margin-top:2px}
+.add-post-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-xlight)}
+
+/* POST PILL */
+.post{border-radius:var(--radius-sm);padding:5px 7px;position:relative;cursor:pointer;transition:filter 0.1s}
+.post:hover .post-actions{opacity:1}
+.post-plat{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.post-topic{font-size:11px;line-height:1.35;color:var(--gray-700);display:block;min-height:14px}
+.post.pi-ig{background:var(--ig-light)}.post.pi-ig .post-plat{color:var(--ig)}
+.post.pi-li{background:var(--li-light)}.post.pi-li .post-plat{color:var(--li)}
+.post.pi-fb{background:var(--fb-light)}.post.pi-fb .post-plat{color:var(--fb)}
+.post.pi-tw{background:var(--tw-light)}.post.pi-tw .post-plat{color:var(--tw)}
+.post-actions{position:absolute;top:4px;right:4px;display:flex;gap:3px;opacity:0;transition:opacity 0.12s}
+.pa-btn{width:18px;height:18px;border-radius:3px;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.12);color:rgba(0,0,0,0.5);transition:all 0.1s}
+.pa-btn:hover{background:rgba(0,0,0,0.25);color:rgba(0,0,0,0.8)}
+.day-empty{padding:10px 8px;text-align:center;font-size:10px;color:var(--gray-400);font-style:italic}
+
+/* CAPTION SECTION */
+.cap-section{margin-top:1.5rem}
+.cap-sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.cap-sec-title{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gray-900)}
+.add-cap-btn{padding:5px 13px;background:var(--green);color:white;border:none;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;transition:background 0.12s}
+.add-cap-btn:hover{background:var(--green-mid)}
+.filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem}
+.fp{padding:4px 12px;border-radius:99px;border:1.5px solid var(--gray-200);background:var(--white);font-size:11px;font-weight:600;color:var(--gray-600);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s}
+.fp:hover,.fp.active{background:var(--slate);border-color:var(--slate);color:white}
+.caps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cap-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius);padding:1rem 1.1rem;display:flex;flex-direction:column;transition:border-color 0.15s;position:relative}
+.cap-card:hover{border-color:var(--green)}
+.cap-card.status-approved{border-color:var(--green);border-left:3px solid var(--green)}
+.cap-card.status-review{border-color:var(--gold);border-left:3px solid var(--gold)}
+.cap-card.hidden{display:none!important}
+.cap-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:.65rem}
+.pb{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:99px}
+.pb-ig{background:var(--ig-light);color:var(--ig)}
+.pb-li{background:var(--li-light);color:var(--li)}
+.pb-fb{background:var(--fb-light);color:var(--fb)}
+.pb-tw{background:var(--tw-light);color:var(--tw)}
+.pb-all{background:var(--green-light);color:var(--green)}
+.pillar-sm{font-size:10px;color:var(--gray-400);font-weight:500}
+
+/* EDITABLE FIELDS */
+.editable{border:1.5px solid transparent;border-radius:5px;padding:3px 5px;transition:border-color 0.15s,background 0.15s;outline:none;background:transparent;font-family:'Barlow',sans-serif;width:100%;resize:none;overflow:hidden}
+.editable:hover{border-color:var(--gray-200);background:var(--gray-50)}
+.editable:focus{border-color:#4a90e2;background:var(--white);box-shadow:0 0 0 3px rgba(74,144,226,0.1)}
+.cap-text-edit{font-size:12.5px;color:var(--gray-700);line-height:1.7;min-height:60px;margin-bottom:.5rem}
+.cap-tags-edit{font-size:11px;color:var(--li);font-weight:500;line-height:1.5;margin-bottom:.4rem}
+.cap-note-edit{font-size:11px;color:var(--gray-400);font-style:italic;margin-bottom:.6rem}
+.post-topic-edit{font-size:11px;line-height:1.35;color:var(--gray-700);background:transparent;border:none;outline:none;font-family:'Barlow',sans-serif;width:100%;resize:none;overflow:hidden}
+.post-topic-edit:focus{outline:none}
+
+/* inline platform selector */
+.plat-select{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;background:transparent;cursor:pointer;font-family:'Barlow',sans-serif;padding:0;margin-bottom:2px;display:block}
+.plat-select:focus{outline:none}
+
+.cap-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:.5rem;border-top:1px solid var(--gray-100)}
+.ca-btn{padding:4px 11px;border-radius:var(--radius-sm);font-size:10px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;border:1.5px solid;transition:all 0.12s}
+.ca-copy{background:var(--gray-100);border-color:var(--gray-200);color:var(--gray-700)}
+.ca-copy:hover{background:var(--green-light);border-color:var(--green);color:var(--green)}
+.ca-copy.copied{background:var(--green);border-color:var(--green);color:white}
+.ca-approve{background:transparent;border-color:var(--gray-200);color:var(--gray-500)}
+.ca-approve:hover{border-color:var(--green);color:var(--green)}
+.ca-review{background:transparent;border-color:var(--gray-200);color:var(--gray-500)}
+.ca-review:hover{border-color:var(--gold);color:var(--gold)}
+.ca-del{background:transparent;border-color:transparent;color:var(--gray-300);margin-left:auto}
+.ca-del:hover{border-color:#ffcccc;color:#cc3333;background:#fff5f5}
+
+/* pillar badge select */
+.pb-select{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:2px 8px;border-radius:99px;border:none;cursor:pointer;font-family:'Barlow',sans-serif}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.hidden{display:none}
+.modal{background:var(--white);border-radius:var(--radius-lg);padding:1.75rem;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,0.2)}
+.modal h3{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:1.25rem;color:var(--gray-900)}
+.modal-field{margin-bottom:1rem}
+.modal-field label{font-size:11px;font-weight:600;color:var(--gray-600);letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:5px}
+.modal-field select,.modal-field input,.modal-field textarea{width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:'Barlow',sans-serif;color:var(--gray-900);outline:none;transition:border-color 0.15s}
+.modal-field select:focus,.modal-field input:focus,.modal-field textarea:focus{border-color:#4a90e2;box-shadow:0 0 0 3px rgba(74,144,226,0.1)}
+.modal-field textarea{resize:vertical;min-height:80px;line-height:1.6}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.modal-btn{padding:8px 18px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:'Barlow',sans-serif;border:none;transition:all 0.15s}
+.modal-cancel{background:var(--gray-100);color:var(--gray-700)}
+.modal-cancel:hover{background:var(--gray-200)}
+.modal-confirm{background:var(--green);color:white}
+.modal-confirm:hover{background:var(--green-mid)}
+
+/* GOAL CHIPS */
+.goal-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+.gc{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:600;border:1.5px solid}
+.gc-aware{background:var(--gold-light);color:var(--gold);border-color:var(--gold-border)}
+.gc-market{background:var(--li-light);color:var(--li);border-color:rgba(0,119,181,0.2)}
+
+/* OVERVIEW */
+.ov-hero{background:var(--slate);border-radius:var(--radius-lg);padding:1.75rem 2rem;margin-bottom:1.5rem;color:white;position:relative;overflow:hidden}
+.ov-hero::before{content:'';position:absolute;right:-30px;top:-30px;width:180px;height:180px;border:28px solid rgba(255,255,255,0.04);border-radius:50%}
+.ov-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:4px}
+.ov-title{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:800;line-height:1.05;letter-spacing:-.01em;margin-bottom:6px}
+.ov-title span{color:#5ec98a}
+.ov-sub{font-size:12px;color:rgba(255,255,255,0.6);max-width:480px;line-height:1.6}
+.ov-chips{display:flex;gap:6px;margin-top:.9rem;flex-wrap:wrap}
+.ov-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px}
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.ov-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:1rem 1.25rem}
+.ov-card-top{display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+.ov-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ov-card-title{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;color:var(--gray-900)}
+.ov-card p{font-size:11px;color:var(--gray-600);line-height:1.55}
+.ov-sec-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--gray-900);border-bottom:2px solid var(--green);padding-bottom:5px;margin-bottom:.9rem;display:block}
+.plat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem}
+.plat-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem;border-top:3px solid var(--green)}
+.plat-card.li{border-top-color:var(--li)}.plat-card.fb{border-top-color:var(--fb)}.plat-card.tw{border-top-color:#555}
+.plat-nm{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1px}
+.plat-role{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--green);margin-bottom:5px}
+.plat-card.li .plat-role{color:var(--li)}.plat-card.fb .plat-role{color:var(--fb)}.plat-card.tw .plat-role{color:#555}
+.plat-detail{font-size:11px;color:var(--gray-600);line-height:1.5}
+.plat-freq{margin-top:7px;display:inline-block;background:var(--gray-100);padding:2px 7px;border-radius:var(--radius-sm);font-size:10px;font-weight:700;color:var(--gray-600)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:99px}
+
+/* CONTENT ENGINE */
+.ce-hero{background:var(--slate);border-radius:var(--radius-lg);padding:1.5rem 2rem;margin-bottom:1.5rem;color:white;position:relative;overflow:hidden}
+.ce-hero::before{content:'';position:absolute;right:-20px;top:-20px;width:150px;height:150px;border:22px solid rgba(255,255,255,0.04);border-radius:50%}
+.ce-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:3px}
+.ce-title{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;font-weight:800;line-height:1.05;margin-bottom:5px}
+.ce-title span{color:#5ec98a}
+.ce-sub{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;max-width:560px}
+.ce-tabs{display:flex;gap:0;border:1px solid var(--gray-200);border-radius:var(--radius-sm);overflow:hidden;background:var(--white);margin-bottom:1.25rem;width:fit-content}
+.ce-tab{padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;font-family:'Barlow',sans-serif;color:var(--gray-600);transition:all 0.12s;white-space:nowrap}
+.ce-tab.active{background:var(--slate);color:white}
+.ce-panel{display:none}.ce-panel.active{display:block}
+.ce-sec-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;color:var(--gray-900);border-bottom:2px solid var(--green);padding-bottom:5px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.pillar-filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.pf-btn{padding:4px 12px;border-radius:99px;border:1.5px solid var(--gray-200);background:var(--white);font-size:11px;font-weight:600;color:var(--gray-600);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s}
+.pf-btn:hover,.pf-btn.active{background:var(--slate);border-color:var(--slate);color:white}
+.hooks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem}
+.hook-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1rem;cursor:pointer;transition:border-color 0.12s,box-shadow 0.12s;position:relative}
+.hook-card:hover{border-color:var(--green);box-shadow:0 2px 8px rgba(26,92,56,0.08)}
+.hook-card.hc-hidden{display:none}
+.hook-pillar{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:99px;display:inline-block;margin-bottom:6px}
+.hp-vi{background:#ede8fa;color:#5b35c9}
+.hp-project{background:var(--green-light);color:var(--green)}
+.hp-turf{background:var(--li-light);color:var(--li)}
+.hp-track{background:var(--gold-light);color:var(--gold)}
+.hp-tennis{background:#fceef8;color:var(--ig)}
+.hp-lighting{background:#fff3e0;color:#e65100}
+.hp-education{background:var(--tw-light);color:#333}
+.hp-community{background:#fde8f4;color:#9b2b6e}
+.hp-people{background:var(--gray-100);color:var(--gray-700)}
+.hp-tradeshow{background:#e8f4fb;color:#0077b5}
+.hook-text{font-size:12.5px;color:var(--gray-700);line-height:1.5;font-weight:500}
+.hook-copy-btn{position:absolute;top:8px;right:8px;padding:3px 8px;background:var(--gray-100);border:none;border-radius:var(--radius-sm);font-size:10px;font-weight:600;color:var(--gray-600);cursor:pointer;font-family:'Barlow',sans-serif;opacity:0;transition:opacity 0.12s}
+.hook-card:hover .hook-copy-btn{opacity:1}
+.hook-copy-btn.copied{background:var(--green);color:white;opacity:1}
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tmpl-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:var(--radius);padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem}
+.tmpl-card:hover{border-color:var(--green)}
+.tmpl-type{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:99px;display:inline-block;width:fit-content}
+.tt-project{background:var(--green-light);color:var(--green)}
+.tt-product{background:var(--li-light);color:var(--li)}
+.tt-vi{background:#ede8fa;color:#5b35c9}
+.tt-lighting{background:#fff3e0;color:#e65100}
+.tt-track{background:var(--gold-light);color:var(--gold)}
+.tmpl-text{font-size:13px;color:var(--gray-700);line-height:1.7;flex:1}
+.tmpl-note{font-size:11px;color:var(--gray-400);font-style:italic}
+.tmpl-actions{display:flex;gap:6px;padding-top:.4rem;border-top:1px solid var(--gray-100)}
+.tmpl-copy{padding:4px 11px;background:var(--gray-100);border:none;border-radius:var(--radius-sm);font-size:10px;font-weight:600;color:var(--gray-700);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s}
+.tmpl-copy:hover{background:var(--green-light);color:var(--green)}
+.tmpl-copy.copied{background:var(--green);color:white}
+.tmpl-use{padding:4px 11px;background:transparent;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:10px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s}
+.tmpl-use:hover{border-color:var(--li);color:var(--li)}
+.ce-count-badge{background:var(--gray-100);color:var(--gray-600);font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
+
+/* POST MODAL ENHANCEMENTS */
+.plat-pick{display:flex;align-items:center;gap:5px;padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:var(--white);font-size:11px;font-weight:600;color:var(--gray-600);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s;justify-content:center}
+.plat-pick:hover{border-color:var(--gray-400);color:var(--gray-900)}
+.plat-pick.active{border-color:var(--slate);background:var(--slate);color:white}
+.pp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hook-pillar-btn{padding:4px 10px;border-radius:99px;border:1.5px solid var(--gray-200);background:var(--white);font-size:10px;font-weight:600;color:var(--gray-600);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s;white-space:nowrap}
+.hook-pillar-btn:hover{border-color:var(--gray-400);color:var(--gray-900)}
+.hook-pillar-btn.active{background:var(--slate);border-color:var(--slate);color:white}
+.status-pick{padding:6px 8px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:var(--white);font-size:11px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s;text-align:center}
+.status-pick:hover{border-color:var(--gray-400);color:var(--gray-900)}
+.status-pick.active[data-status=""]{border-color:var(--gray-400);background:var(--gray-100);color:var(--gray-700)}
+.status-pick.active[data-status="approved"]{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.status-pick.active[data-status="review"]{border-color:var(--gold);background:var(--gold-light);color:var(--gold)}
+.status-pick.active[data-status="posted"]{border-color:var(--li);background:var(--li-light);color:var(--li)}
+/* DRAG AND DROP */
+.post.dragging{opacity:0.35;transform:scale(0.97)}
+.day-posts.drag-over{outline:2px dashed var(--green);outline-offset:-2px;background:var(--green-xlight);border-radius:var(--radius-sm)}
+.drag-handle{cursor:grab;display:inline-block;color:var(--gray-300);font-size:11px;line-height:1;padding:0 2px;flex-shrink:0;user-select:none}
+.drag-handle:active{cursor:grabbing}
+.post.ps-approved{border-left:3px solid var(--green)!important}
+.post.ps-review{border-left:3px solid var(--gold)!important}
+.post.ps-posted{border-left:3px solid var(--li)!important;opacity:0.75}
+.post-status-badge{display:inline-block;font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-top:3px}
+.psb-approved{background:var(--green-light);color:var(--green)}
+.psb-review{background:var(--gold-light);color:var(--gold)}
+.psb-posted{background:var(--li-light);color:var(--li)}
+#mp-topic:focus{border-color:#4a90e2;box-shadow:0 0 0 3px rgba(74,144,226,0.1)}
+#mp-hook:focus,#mp-tmpl:focus{border-color:#4a90e2;box-shadow:0 0 0 3px rgba(74,144,226,0.1)}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="tb-brand">HELLAS <span>·</span> Content Planner</div>
+    <div class="tb-sub">Q2–Q4 2026 · Shared Team Workspace</div>
+  </div>
+  <div class="tb-actions">
+    <span class="save-indicator" id="saveInd"><span class="save-dot"></span>Connecting…</span>
+    <button class="tb-btn tb-ghost" onclick="refreshFromCloud()" title="Pull latest changes from cloud">↻ Refresh</button>
+    <button class="tb-btn tb-ghost" onclick="exportData()">Export JSON</button>
+    <button class="tb-btn tb-ghost" onclick="window.print()">Print PDF</button>
+    <button class="tb-btn tb-danger" onclick="confirmReset()">Reset All</button>
+  </div>
+</div>
+
+<!-- ADD / EDIT POST MODAL -->
+<div class="modal-bg hidden" id="addPostModal">
+  <div class="modal" style="max-width:560px">
+    <h3 id="mp-title">Create Post</h3>
+
+    <!-- Platforms — multi-select -->
+    <div class="modal-field">
+      <label style="display:flex;align-items:center;justify-content:space-between">
+        <span>Platforms</span>
+        <span style="font-size:10px;color:var(--gray-400);font-weight:400">Select all that apply</span>
+      </label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="mp-plat-grid">
+        <button class="plat-pick" data-plat="ig" onclick="togglePlat(this)">
+          <span class="pp-dot" style="background:var(--ig)"></span>Instagram
+        </button>
+        <button class="plat-pick" data-plat="li" onclick="togglePlat(this)">
+          <span class="pp-dot" style="background:var(--li)"></span>LinkedIn
+        </button>
+        <button class="plat-pick" data-plat="fb" onclick="togglePlat(this)">
+          <span class="pp-dot" style="background:var(--fb)"></span>Facebook
+        </button>
+        <button class="plat-pick" data-plat="tw" onclick="togglePlat(this)">
+          <span class="pp-dot" style="background:#555"></span>X (Twitter)
+        </button>
+      </div>
+    </div>
+
+    <!-- Hook selector (hidden in edit mode) -->
+    <div class="modal-field" id="mp-hook-section">
+      <label style="display:flex;align-items:center;justify-content:space-between">
+        <span>Start from a hook <span style="font-weight:400;color:var(--gray-400)">(optional)</span></span>
+        <span style="font-size:10px;color:var(--gray-400);font-weight:400">Pick a pillar, then a hook — it fills the field below</span>
+      </label>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap" id="mp-pillar-btns">
+        <button class="hook-pillar-btn active" data-pillar="all" onclick="selectPillar(this)">All</button>
+        <button class="hook-pillar-btn" data-pillar="vi" onclick="selectPillar(this)">Vertical Integration</button>
+        <button class="hook-pillar-btn" data-pillar="project" onclick="selectPillar(this)">Project</button>
+        <button class="hook-pillar-btn" data-pillar="turf" onclick="selectPillar(this)">Turf</button>
+        <button class="hook-pillar-btn" data-pillar="track" onclick="selectPillar(this)">Track</button>
+        <button class="hook-pillar-btn" data-pillar="tennis" onclick="selectPillar(this)">Tennis</button>
+        <button class="hook-pillar-btn" data-pillar="lighting" onclick="selectPillar(this)">Lighting</button>
+        <button class="hook-pillar-btn" data-pillar="education" onclick="selectPillar(this)">Education</button>
+        <button class="hook-pillar-btn" data-pillar="community" onclick="selectPillar(this)">Community</button>
+        <button class="hook-pillar-btn" data-pillar="people" onclick="selectPillar(this)">People</button>
+        <button class="hook-pillar-btn" data-pillar="tradeshow" onclick="selectPillar(this)">Trade Shows</button>
+      </div>
+      <select id="mp-hook" size="1" onchange="applyHook(this.value)" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Barlow',sans-serif;color:var(--gray-900);outline:none;background:var(--white);cursor:pointer">
+        <option value="">— Select a hook to pre-fill —</option>
+      </select>
+    </div>
+
+    <!-- Post content -->
+    <div class="modal-field">
+      <label style="display:flex;align-items:center;justify-content:space-between">
+        <span>Post idea / content</span>
+        <span id="mp-hook-badge" style="display:none;font-size:10px;background:var(--green-light);color:var(--green);padding:2px 8px;border-radius:99px;font-weight:600">Hook applied ✓</span>
+      </label>
+      <textarea id="mp-topic" rows="4" placeholder="Write your post idea here, or select a hook above to get started..." style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;font-family:'Barlow',sans-serif;color:var(--gray-900);outline:none;resize:vertical;line-height:1.6;transition:border-color 0.15s"></textarea>
+    </div>
+
+    <!-- Status -->
+    <div class="modal-field">
+      <label>Status</label>
+      <div style="display:flex;gap:6px" id="mp-status-btns">
+        <button class="status-pick active" data-status="" onclick="selectStatus(this)" style="flex:1">None</button>
+        <button class="status-pick" data-status="approved" onclick="selectStatus(this)" style="flex:1">✓ Approved</button>
+        <button class="status-pick" data-status="review" onclick="selectStatus(this)" style="flex:1">Needs Review</button>
+        <button class="status-pick" data-status="posted" onclick="selectStatus(this)" style="flex:1">Posted</button>
+      </div>
+    </div>
+
+    <!-- Caption template (hidden in edit mode) -->
+    <div class="modal-field" id="mp-tmpl-row">
+      <label style="display:flex;align-items:center;justify-content:space-between">
+        <span>Add a caption template <span style="font-weight:400;color:var(--gray-400)">(optional)</span></span>
+        <span style="font-size:10px;color:var(--gray-400);font-weight:400">Saved to this month's caption library</span>
+      </label>
+      <select id="mp-tmpl" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Barlow',sans-serif;color:var(--gray-900);outline:none;background:var(--white)">
+        <option value="">— No caption template —</option>
+        <option value="0">Project Delivery template</option>
+        <option value="1">Product / System template</option>
+        <option value="2">Vertical Integration template</option>
+        <option value="3">Sports Lighting template</option>
+        <option value="4">Track Surfaces template</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal('addPostModal')">Cancel</button>
+      <button class="modal-btn modal-confirm" id="mp-confirm-btn" onclick="submitAddPost()">Add Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CAPTION MODAL -->
+<div class="modal-bg hidden" id="addCapModal">
+  <div class="modal">
+    <h3>Add Caption</h3>
+    <div class="modal-field">
+      <label>Platform</label>
+      <select id="mc-plat">
+        <option value="ig">Instagram</option>
+        <option value="li">LinkedIn</option>
+        <option value="fb">Facebook</option>
+        <option value="tw">X (Twitter)</option>
+        <option value="all">All Platforms</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Pillar / Category</label>
+      <input id="mc-pillar" type="text" placeholder="e.g. Showcase, Community, Education...">
+    </div>
+    <div class="modal-field">
+      <label>Caption copy</label>
+      <textarea id="mc-text" rows="5" placeholder="Write your caption here. Use [brackets] for things to customize later."></textarea>
+    </div>
+    <div class="modal-field">
+      <label>Hashtags</label>
+      <input id="mc-tags" type="text" placeholder="#HellasTurf #SportsConstruction ...">
+    </div>
+    <div class="modal-field">
+      <label>Designer note (optional)</label>
+      <input id="mc-note" type="text" placeholder="e.g. Use with aerial photo, tag the school...">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal('addCapModal')">Cancel</button>
+      <button class="modal-btn modal-confirm" onclick="submitAddCap()">Add Caption</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FUTURE MONTH MODAL -->
+<div class="modal-bg hidden" id="addMonthModal">
+  <div class="modal" style="max-width:440px">
+    <h3>Add Future Month</h3>
+    <div class="modal-field">
+      <label>Month</label>
+      <select id="am-month">
+        <option value="1">January</option><option value="2">February</option>
+        <option value="3">March</option><option value="4">April</option>
+        <option value="5">May</option><option value="6">June</option>
+        <option value="7">July</option><option value="8">August</option>
+        <option value="9">September</option><option value="10">October</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>Year</label>
+      <input id="am-year" type="number" value="2027" min="2026" max="2035">
+    </div>
+    <div class="modal-field">
+      <label>Theme / Focus <span style="font-weight:400;color:var(--gray-400)">(optional)</span></label>
+      <input id="am-theme" type="text" placeholder="e.g. Q1 Push, Spring Season, Trade Show Season...">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal('addMonthModal')">Cancel</button>
+      <button class="modal-btn modal-confirm" onclick="submitAddMonth()">Add Month</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Navigation</div>
+    <div class="sb-link active" id="sb-overview" onclick="showPage('overview',this)">◈ &nbsp;Overview</div>
+    <div class="sb-link" id="sb-engine" onclick="showPage('engine',this)">✦ &nbsp;Content Engine</div>
+    <div class="sb-div"></div>
+    <div id="sidebar-months"></div>
+    <div style="padding:0.75rem 1rem">
+      <button onclick="document.getElementById('addMonthModal').classList.remove('hidden')"
+        style="width:100%;padding:7px;border:1.5px dashed var(--gray-300);border-radius:var(--radius-sm);background:transparent;font-size:11px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.12s"
+        onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'"
+        onmouseout="this.style.borderColor='var(--gray-300)';this.style.color='var(--gray-500)'">
+        + Add future month
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainScroll">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="ov-hero">
+        <div class="ov-eyebrow">Hellas Construction · 2026</div>
+        <div class="ov-title">Social Media<br><span>Content Planner</span></div>
+        <div class="ov-sub">A full-year content plan across Instagram, LinkedIn, Facebook, and X. Click any text to edit. Changes save automatically.</div>
+        <div class="ov-chips">
+          <span class="ov-chip">Brand Awareness</span>
+          <span class="ov-chip">Market Share Growth</span>
+          <span class="ov-chip">Apr – Dec 2026</span>
+          <span class="ov-chip">4 Platforms</span>
+        </div>
+      </div>
+      <span class="ov-sec-title">Strategic Goals</span>
+      <div class="ov-grid">
+        <div class="ov-card"><div class="ov-card-top"><div class="ov-icon" style="background:var(--gold-light)">★</div><div class="ov-card-title">Brand Awareness</div></div><p>Make Hellas the first name buyers think of when they imagine sports surfaces. Grow reach, impressions, and organic mentions across all four platforms.</p></div>
+        <div class="ov-card"><div class="ov-card-top"><div class="ov-icon" style="background:var(--li-light)">▲</div><div class="ov-card-title">Market Share Growth</div></div><p>Outpace competitors through consistent presence, thought leadership, and project visibility. Own the sports construction conversation online.</p></div>
+      </div>
+      <span class="ov-sec-title">Platform Roles</span>
+      <div class="plat-grid">
+        <div class="plat-card"><div class="plat-nm">Instagram</div><div class="plat-role">Visual Portfolio</div><div class="plat-detail">Project reveals, reels, before/afters. Build aspirational brand identity with coaches, athletic staff, and facility decision-makers.</div><div class="plat-freq">4–5x / week</div></div>
+        <div class="plat-card li"><div class="plat-nm">LinkedIn</div><div class="plat-role">B2B Authority</div><div class="plat-detail">Target facility managers, administrators, and project owners. Thought leadership, case studies, and industry positioning content.</div><div class="plat-freq">3–4x / week</div></div>
+        <div class="plat-card fb"><div class="plat-nm">Facebook</div><div class="plat-role">Community + Retargeting</div><div class="plat-detail">Reach local communities, sports leagues, and school boosters. Retarget website visitors and keep Hellas top of mind.</div><div class="plat-freq">3x / week</div></div>
+        <div class="plat-card tw"><div class="plat-nm">X (Twitter)</div><div class="plat-role">Industry Voice</div><div class="plat-detail">Engage sports industry hashtags, share quick stats, and position Hellas as the expert in sports surface innovation.</div><div class="plat-freq">2–3x / week</div></div>
+      </div>
+    </div>
+
+    <div id="month-pages"></div>
+    <!-- CONTENT ENGINE PAGE -->
+    <div class="page" id="page-engine"></div>
+
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const HOOKS = [
+  // Vertical Integration
+  {pillar:'vi',text:'Most construction projects involve multiple vendors. Here\'s why Hellas does it differently.'},
+  {pillar:'vi',text:'What does full vertical integration actually look like? Let\'s break it down.'},
+  {pillar:'vi',text:'One partner. One process. One accountable team.'},
+  {pillar:'vi',text:'Most companies handle one piece of the puzzle. Hellas builds the whole thing.'},
+  {pillar:'vi',text:'The advantage of having design, manufacturing, and installation under one roof.'},
+  {pillar:'vi',text:'Here\'s what happens when a project has a single-source partner.'},
+  {pillar:'vi',text:'The behind-the-scenes process most facility owners never see.'},
+  {pillar:'vi',text:'What makes a vertically integrated construction partner different?'},
+  {pillar:'vi',text:'Why integration matters more than most people realize.'},
+  {pillar:'vi',text:'This is where Hellas separates itself from the industry.'},
+  // Project Showcases
+  {pillar:'project',text:'A quick look at one of our latest projects.'},
+  {pillar:'project',text:'Before. During. After.'},
+  {pillar:'project',text:'Every facility starts with a vision.'},
+  {pillar:'project',text:'A closer look at a recently completed Hellas project.'},
+  {pillar:'project',text:'From concept to completion.'},
+  {pillar:'project',text:'Another facility ready for game day.'},
+  {pillar:'project',text:'A transformation worth seeing.'},
+  {pillar:'project',text:'One project. One team. One integrated process.'},
+  {pillar:'project',text:'This project started with a conversation and ended with a facility built to perform.'},
+  {pillar:'project',text:'The moment a facility goes from construction site to game day ready.'},
+  // Turf Systems
+  {pillar:'turf',text:'Not all turf systems are built the same.'},
+  {pillar:'turf',text:'What makes a high-performance turf field?'},
+  {pillar:'turf',text:'The details beneath the surface matter most.'},
+  {pillar:'turf',text:'Turf systems designed for performance and durability.'},
+  {pillar:'turf',text:'The engineering behind a modern athletic field.'},
+  {pillar:'turf',text:'A look at the layers that make up a turf system.'},
+  {pillar:'turf',text:'The surface athletes depend on every play.'},
+  {pillar:'turf',text:'How the right field system improves performance.'},
+  {pillar:'turf',text:'Turf technology continues to evolve.'},
+  {pillar:'turf',text:'The foundation of every great field starts below the surface.'},
+  // Track Surfaces
+  {pillar:'track',text:'What makes a running track fast and safe?'},
+  {pillar:'track',text:'Track surfaces engineered for performance.'},
+  {pillar:'track',text:'Every lane tells a story.'},
+  {pillar:'track',text:'The difference between a good track and a great one.'},
+  {pillar:'track',text:'From base prep to lane striping.'},
+  {pillar:'track',text:'The surface where records are chased.'},
+  {pillar:'track',text:'A closer look at modern track construction.'},
+  {pillar:'track',text:'Built for speed, safety, and durability.'},
+  {pillar:'track',text:'The details that make a track competition ready.'},
+  {pillar:'track',text:'Where athletes chase personal bests.'},
+  // Tennis Courts
+  {pillar:'tennis',text:'A great match starts with the right surface.'},
+  {pillar:'tennis',text:'Designing tennis courts for long-term playability.'},
+  {pillar:'tennis',text:'What goes into building a tennis complex?'},
+  {pillar:'tennis',text:'The surface beneath the game matters.'},
+  {pillar:'tennis',text:'Hard court performance starts with proper construction.'},
+  {pillar:'tennis',text:'Tennis courts built for consistency and durability.'},
+  {pillar:'tennis',text:'The foundation of every great rally.'},
+  {pillar:'tennis',text:'A closer look at tennis court construction.'},
+  {pillar:'tennis',text:'Multi-court complexes built for competitive play.'},
+  {pillar:'tennis',text:'Facilities where the next generation of players compete.'},
+  // Sports Lighting
+  {pillar:'lighting',text:'Great lighting changes the game.'},
+  {pillar:'lighting',text:'The science behind stadium lighting.'},
+  {pillar:'lighting',text:'Lighting designed for performance and visibility.'},
+  {pillar:'lighting',text:'The difference between lighting and sports lighting.'},
+  {pillar:'lighting',text:'Visibility matters on every play.'},
+  {pillar:'lighting',text:'Modern LED systems built for athletic environments.'},
+  {pillar:'lighting',text:'Lighting that brings the game to life.'},
+  {pillar:'lighting',text:'From design to installation.'},
+  {pillar:'lighting',text:'A closer look at sports lighting engineering.'},
+  {pillar:'lighting',text:'The systems that keep the game going after sunset.'},
+  // Industry Education
+  {pillar:'education',text:'The biggest mistake facilities make when planning upgrades.'},
+  {pillar:'education',text:'Here\'s something the industry doesn\'t talk about enough.'},
+  {pillar:'education',text:'What most people get wrong about athletic facilities.'},
+  {pillar:'education',text:'Planning a new facility? Start here.'},
+  {pillar:'education',text:'The first decision that shapes every project.'},
+  {pillar:'education',text:'Why long-term durability should be the priority.'},
+  {pillar:'education',text:'Facility planning starts long before construction.'},
+  {pillar:'education',text:'Design decisions that impact performance for decades.'},
+  {pillar:'education',text:'A quick tip for athletic facility planning.'},
+  {pillar:'education',text:'Small details. Big performance differences.'},
+  // Community & Sports
+  {pillar:'community',text:'Friday night lights start here.'},
+  {pillar:'community',text:'Where athletes train, compete, and grow.'},
+  {pillar:'community',text:'These are the facilities where memories are made.'},
+  {pillar:'community',text:'The moment a new field opens.'},
+  {pillar:'community',text:'Facilities that bring sports to life.'},
+  {pillar:'community',text:'Built for the athletes who use them every day.'},
+  {pillar:'community',text:'Opening night never gets old.'},
+  {pillar:'community',text:'Another facility ready for the next generation of athletes.'},
+  {pillar:'community',text:'From youth sports to championships.'},
+  {pillar:'community',text:'Proud to support the places where sports happen.'},
+  // People of Hellas
+  {pillar:'people',text:'Meet the team behind the projects.'},
+  {pillar:'people',text:'The people who make Hellas possible.'},
+  {pillar:'people',text:'A day on a Hellas job site.'},
+  {pillar:'people',text:'Experience that spans decades.'},
+  {pillar:'people',text:'The experts behind the engineering.'},
+  {pillar:'people',text:'The crews bringing projects to life.'},
+  {pillar:'people',text:'The difference behind every successful project.'},
+  {pillar:'people',text:'From engineers to installers.'},
+  {pillar:'people',text:'A closer look at the people behind the brand.'},
+  {pillar:'people',text:'Built by a team that cares about every detail.'},
+  // Trade Shows
+  {pillar:'tradeshow',text:'If you\'re attending [Event], come see us.'},
+  {pillar:'tradeshow',text:'On the road this week talking facilities.'},
+  {pillar:'tradeshow',text:'A quick look at what we\'re showcasing at [Show].'},
+  {pillar:'tradeshow',text:'Great conversations happening at [Conference].'},
+  {pillar:'tradeshow',text:'Stop by and meet the team.'},
+  {pillar:'tradeshow',text:'Industry leaders gathering this week.'},
+  {pillar:'tradeshow',text:'Talking turf, track, courts, and lighting.'},
+  {pillar:'tradeshow',text:'A look inside our booth at [Event].'},
+  {pillar:'tradeshow',text:'Connecting with the people shaping sports facilities.'},
+  {pillar:'tradeshow',text:'Another great week at [Industry Event].'}
+];
+
+const TEMPLATES = [
+  {type:'project',label:'Project Delivery',text:'Another facility delivered the Hellas way. From initial design through final installation, our team worked closely with [client] to create a facility built for performance, durability, and long-term success.',note:'Customize [client] with the actual school, district, or organization name. Add a project photo or aerial shot for maximum reach.'},
+  {type:'product',label:'Product / System',text:'Performance starts beneath the surface. Our [product/system] is engineered to provide consistent playability, durability, and long-term value for facilities at every level of competition.',note:'Replace [product/system] with the specific Hellas product line. Works well with a product close-up or cross-section graphic.'},
+  {type:'vi',label:'Vertical Integration',text:'One partner. One process. Hellas manages every stage of the project — from design and manufacturing to installation — ensuring quality, accountability, and efficiency at every step.',note:'Great for LinkedIn and Facebook. Pair with a "how it works" infographic or behind-the-scenes installation photo.'},
+  {type:'lighting',label:'Sports Lighting',text:'Great lighting changes the game. Our sports lighting systems are designed to provide consistent visibility, energy efficiency, and performance for athletes and fans alike.',note:'Best used with a stadium-under-lights photo. Night game imagery performs especially well on Instagram Reels.'},
+  {type:'track',label:'Track Surfaces',text:'Built for speed. Designed for safety. Our track systems deliver high-performance surfaces engineered for durability, traction, and competition-level performance.',note:'Pair with an overhead shot of a completed track or an action photo of athletes competing. Works well for all four platforms.'}
+];
+
+const PILLAR_META = {
+  vi:{label:'Vertical Integration',cls:'hp-vi'},
+  project:{label:'Project Showcase',cls:'hp-project'},
+  turf:{label:'Turf Systems',cls:'hp-turf'},
+  track:{label:'Track Surfaces',cls:'hp-track'},
+  tennis:{label:'Tennis Courts',cls:'hp-tennis'},
+  lighting:{label:'Sports Lighting',cls:'hp-lighting'},
+  education:{label:'Industry Education',cls:'hp-education'},
+  community:{label:'Community & Sports',cls:'hp-community'},
+  people:{label:'People of Hellas',cls:'hp-people'},
+  tradeshow:{label:'Trade Shows',cls:'hp-tradeshow'}
+};
+
+function renderEnginePage() {
+  const el = document.getElementById('page-engine');
+  if (!el) return;
+  const pillars = Object.keys(PILLAR_META);
+  el.innerHTML = `
+    <div class="ce-hero">
+      <div class="ce-eyebrow">Hellas Content Engine · 2026</div>
+      <div class="ce-title">100 Hooks + <span>Caption Templates</span></div>
+      <div class="ce-sub">Ready-to-use post hooks organized by content pillar, plus 5 core caption templates. Click any hook to copy it. Use templates as starting points for your real captions.</div>
+    </div>
+    <div class="ce-tabs">
+      <button class="ce-tab active" onclick="switchCeTab('hooks',this)">100 Post Hooks</button>
+      <button class="ce-tab" onclick="switchCeTab('templates',this)">Caption Templates</button>
+    </div>
+
+    <!-- HOOKS PANEL -->
+    <div class="ce-panel active" id="ce-hooks">
+      <div class="ce-sec-title">
+        <span>Post Hooks by Pillar</span>
+        <span class="ce-count-badge">100 hooks</span>
+      </div>
+      <div class="pillar-filter-row" id="hook-filters">
+        <button class="pf-btn active" onclick="filterHooks('all',this)">All Pillars</button>
+        ${pillars.map(p => `<button class="pf-btn" onclick="filterHooks('${p}',this)">${PILLAR_META[p].label}</button>`).join('')}
+      </div>
+      <div class="hooks-grid" id="hooks-grid">
+        ${HOOKS.map((h, i) => `
+          <div class="hook-card" data-pillar="${h.pillar}" onclick="copyHook(${i})">
+            <button class="hook-copy-btn" id="hcb-${i}" onclick="event.stopPropagation();copyHook(${i})">Copy</button>
+            <div class="hook-pillar ${PILLAR_META[h.pillar].cls}">${PILLAR_META[h.pillar].label}</div>
+            <div class="hook-text">${escHtml(h.text)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- TEMPLATES PANEL -->
+    <div class="ce-panel" id="ce-templates">
+      <div class="ce-sec-title">
+        <span>Caption Templates</span>
+        <span class="ce-count-badge">5 templates</span>
+      </div>
+      <p style="font-size:12px;color:var(--gray-600);margin-bottom:1rem;max-width:620px;line-height:1.6">These are your brand's core caption frameworks. Copy any template and paste it into your caption library or scheduling tool — then customize the bracketed fields with your specific project, product, or client details.</p>
+      <div class="template-grid">
+        ${TEMPLATES.map((t, i) => `
+          <div class="tmpl-card">
+            <div class="tmpl-type tt-${t.type}">${t.label}</div>
+            <div class="tmpl-text">${escHtml(t.text)}</div>
+            <div class="tmpl-note">${escHtml(t.note)}</div>
+            <div class="tmpl-actions">
+              <button class="tmpl-copy" id="tcb-${i}" onclick="copyTemplate(${i})">Copy Template</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function switchCeTab(panel, btn) {
+  document.querySelectorAll('.ce-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.ce-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ce-' + panel).classList.add('active');
+}
+
+function filterHooks(pillar, btn) {
+  document.querySelectorAll('#hook-filters .pf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#hooks-grid .hook-card').forEach(c => {
+    c.classList.toggle('hc-hidden', pillar !== 'all' && c.dataset.pillar !== pillar);
+  });
+}
+
+function copyHook(i) {
+  navigator.clipboard.writeText(HOOKS[i].text).then(() => {
+    const btn = document.getElementById('hcb-' + i);
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000); }
+  });
+}
+
+function copyTemplate(i) {
+  navigator.clipboard.writeText(TEMPLATES[i].text).then(() => {
+    const btn = document.getElementById('tcb-' + i);
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy Template'; btn.classList.remove('copied'); }, 2000); }
+  });
+}
+
+const MONTHS = [
+  {id:'apr',num:1,q:'Q2',name:'April 2026',theme:'Launch & Visibility',focus:'Launch',topPlat:'Instagram',keyContent:'Reveals',ctaGoal:'Awareness',
+   weeks:[
+    {label:'Week 1 · Apr 1–4 · Introduce Hellas to the Feed',days:[
+      {name:'Tue',date:'Apr 1',posts:[{plat:'li',topic:'Company intro: Who is Hellas? Mission, scale, and what sets us apart.'},{plat:'ig',topic:'Grand field reveal — hero aerial photo of a completed stadium. "This is what we build."'}]},
+      {name:'Wed',date:'Apr 2',posts:[{plat:'fb',topic:'Shared field reveal + "What we do" intro copy for community audience.'},{plat:'tw',topic:'Industry stat: "X% of pro teams now use synthetic turf — here\'s why" with Hellas angle.'}]},
+      {name:'Thu',date:'Apr 3',posts:[{plat:'ig',topic:'Before & after carousel — school district field transformation. Swipe to see the change.'},{plat:'li',topic:'"5 things to consider when choosing a sports surface" — thought leadership.'}]},
+      {name:'Fri',date:'Apr 4',posts:[{plat:'ig',topic:'Reel: Installation time-lapse. "From dirt to game-ready in [X] days."'},{plat:'fb',topic:'"Playing on a Hellas field this weekend? Tag us!" — engagement post.'}]},
+      {name:'Wknd',date:'',posts:[]}
+    ]},
+    {label:'Week 2 · Apr 7–11 · Build Authority',days:[
+      {name:'Mon',date:'Apr 7',posts:[{plat:'ig',topic:'Aerial shot — completed multi-sport facility. Clean, aspirational.'},{plat:'li',topic:'"Synthetic vs. natural grass: What facility managers need to know" — full article.'}]},
+      {name:'Tue',date:'Apr 8',posts:[{plat:'tw',topic:'"3 maintenance mistakes that shorten turf life" — punchy thread.'},{plat:'fb',topic:'"How to budget for a field renovation project" — educational with CTA.'}]},
+      {name:'Wed',date:'Apr 9',posts:[{plat:'ig',topic:'Behind-the-scenes: Installation crew at work. The human side of Hellas.'},{plat:'li',topic:'Employee spotlight: Project manager feature — expertise and passion.'}]},
+      {name:'Thu',date:'Apr 10',posts:[{plat:'li',topic:'Infographic: "The anatomy of a Hellas field" — layers, technology, performance.'},{plat:'fb',topic:'FAQ: "What does a field installation actually cost?" — with contact CTA.'}]},
+      {name:'Fri',date:'Apr 11',posts:[{plat:'ig',topic:'Game day reel: Athletes competing on a Hellas field. Energy and community pride.'},{plat:'tw',topic:'#FridayField — weekly photo drop. Start the tradition.'}]}
+    ]},
+    {label:'Week 3 · Apr 14–18 · Social Proof + Community',days:[
+      {name:'Mon',date:'Apr 14',posts:[{plat:'ig',topic:'Client testimonial graphic — quote overlaid on photo of their completed field.'},{plat:'li',topic:'Full case study: School district project — challenge, solution, outcome.'}]},
+      {name:'Tue',date:'Apr 15',posts:[{plat:'fb',topic:'Shared testimonial + "Is your facility ready for an upgrade?" with contact CTA.'},{plat:'tw',topic:'Award or recognition announcement. Own the credibility moment.'}]},
+      {name:'Wed',date:'Apr 16',posts:[{plat:'ig',topic:'Carousel: "5 reasons schools choose Hellas" — swipeable value props.'},{plat:'li',topic:'Thought leadership: "What a great athletic facility looks like in 2026." Aspirational positioning.'}]},
+      {name:'Thu',date:'Apr 17',posts:[{plat:'ig',topic:'Sustainability: Hellas\' eco-friendly materials and recycling commitment.'},{plat:'fb',topic:'Seasonal promo or limited-window offer — link to quote form.'}]},
+      {name:'Fri',date:'Apr 18',posts:[{plat:'ig',topic:'Reel: "Built for champions" — montage of elite-level Hellas fields.'},{plat:'tw',topic:'#FridayField week 3 — consistency builds brand recall.'}]}
+    ]},
+    {label:'Week 4 · Apr 21–25 · Close the Month Strong',days:[
+      {name:'Mon',date:'Apr 21',posts:[{plat:'ig',topic:'New project tease: "Something big is coming to [City]. Stay tuned."'},{plat:'li',topic:'"How Hellas approaches large-scale municipal projects" — process post.'}]},
+      {name:'Tue',date:'Apr 22',posts:[{plat:'tw',topic:'Market insight: Growth of synthetic turf adoption in the US — data-led.'},{plat:'fb',topic:'Comparison: "Hellas vs. traditional surfacing — 10-year cost breakdown."'}]},
+      {name:'Wed',date:'Apr 23',posts:[{plat:'ig',topic:'Milestone: "[X] fields installed nationwide." Brand scale moment.'},{plat:'li',topic:'Industry report share with Hellas commentary — thought leadership positioning.'}]},
+      {name:'Thu',date:'Apr 24',posts:[{plat:'li',topic:'Month-close reflection: "April in review — the projects we built and the communities we served."'},{plat:'fb',topic:'Community: A youth league or school playing on a Hellas field this spring.'}]},
+      {name:'Fri',date:'Apr 25',posts:[{plat:'ig',topic:'Month recap reel: Best April moments, fields, and community highlights.'},{plat:'tw',topic:'April wrap — best posts, engagement highlights, tease for May.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'ig',pillar:'Project Showcase · Week 1',cat:'showcase',text:'From bare ground to game-ready in [X] days. ⚽\n\nThis is what we do. [School/Stadium Name] now has a field built to perform from day one — and serve [X] athletes for years to come.\n\nEvery blade of turf. Every yard line. Every detail — engineered by Hellas.',tags:'#HellasTurf #SportsConstruction #FieldRenovation #AthleticFacilities #GameReady #TurfLife',note:'Use with before/after carousel or reel. Tag the school or team.',status:''},
+    {plat:'li',pillar:'Brand Intro · Week 1',cat:'brand',text:'For over [X] years, Hellas has been building sports surfaces that change how communities play.\n\nFrom NFL-caliber stadiums to neighborhood school fields — we engineer every installation with the same precision and the same commitment: build it right, build it to last.\n\nIf you\'re a facility manager, athletic director, or project owner thinking about a surface upgrade, we\'d love to connect.\n\n📩 Tell us about your project → [link]',tags:'#HellasSports #SportsInfrastructure #FacilityManagement #TurfInstallation #SportsConstruction',note:'',status:''},
+    {plat:'li',pillar:'Education · Week 2',cat:'education',text:'If you\'re evaluating synthetic turf vendors, here are 5 questions to ask before you sign anything:\n\n1. What\'s the fiber composition — and what\'s the warranty?\n2. How does your drainage system perform in heavy rain?\n3. What infill do you recommend for our sport, and why?\n4. Can you share references from similar facilities?\n5. What does ongoing maintenance actually require?\n\nWe\'re always happy to answer these first — and honestly. 📩',tags:'#FacilityManagement #SyntheticTurf #AthleticDirector #TurfBuying #SportsInfrastructure',note:'',status:''},
+    
+    {plat:'ig',pillar:'Community · Week 2',cat:'community',text:'Game days hit different when the field is this good. 🏈\n\nShoutout to [Team/School Name] for letting us be part of your story. Go get \'em this season. 💪\n\nPlaying on a Hellas field? Tag us — we want to see the action.',tags:'#GameDay #HellasTurf #HighSchoolSports #FridayNightLights #GoTeam #SportsFamily',note:'UGC goldmine — encourage tags and repost the best ones to Stories.',status:''},
+    {plat:'ig',pillar:'Reel Caption · Week 1',cat:'showcase',text:'The aerial view never gets old. 🚁\n\n[Field/Stadium Name] — one of our favorites. There\'s something about seeing the lines, the color, the symmetry from above that reminds us why we love what we do.\n\nSwipe to see the full transformation. 👉',tags:'#HellasTurf #AerialView #SyntheticTurf #FieldInstallation #BeforeAndAfter',note:'Best paired with drone footage or aerial carousel.',status:''}
+   ]
+  },
+  {id:'may',num:2,q:'Q2',name:'May 2026',theme:'Education & Trust',focus:'Education',topPlat:'LinkedIn',keyContent:'Guides',ctaGoal:'Consult',
+   weeks:[
+    {label:'Week 1 · May 1–2 · Spring Planning Season Kickoff',days:[
+      {name:'Thu',date:'May 1',posts:[{plat:'ig',topic:'Spring announcement: "Planning season is here. Here\'s what\'s coming." Tease upcoming installs.'},{plat:'li',topic:'"What makes a great athletic facility? Here\'s what Hellas looks for in every build." Authority content.'}]},
+      {name:'Fri',date:'May 2',posts:[{plat:'ig',topic:'Product spotlight: Feature a flagship turf system. Clean product photo + key performance stats.'},{plat:'tw',topic:'Hot take: "The biggest myth about synthetic turf — debunked." Engagement bait.'}]},
+      {name:'—',date:'',posts:[]},{name:'—',date:'',posts:[]},{name:'Wknd',date:'',posts:[]}
+    ]},
+    {label:'Week 2 · May 5–9 · Deep Education Week',days:[
+      {name:'Mon',date:'May 5',posts:[{plat:'li',topic:'"Turf temperature and athlete safety: What the data says." Science-backed thought leadership.'},{plat:'ig',topic:'Infographic carousel: "The anatomy of a Hellas field" — layers, tech, performance.'}]},
+      {name:'Tue',date:'May 6',posts:[{plat:'tw',topic:'Stat drop: Surface temp difference between standard turf and Hellas\' cooling system.'},{plat:'fb',topic:'"Natural grass vs. synthetic turf for schools: a 10-year cost breakdown."'}]},
+      {name:'Wed',date:'May 7',posts:[{plat:'ig',topic:'Behind-the-scenes: How Hellas quality-checks an install before handoff.'},{plat:'li',topic:'Partner spotlight: Feature a key partner — cert body, supplier, or design firm.'}]},
+      {name:'Thu',date:'May 8',posts:[{plat:'fb',topic:'FAQ: "How long does a Hellas field actually last?" with maintenance tips and warranty info.'},{plat:'li',topic:'Employee spotlight: Lead engineer or install supervisor — expertise and passion.'}]},
+      {name:'Fri',date:'May 9',posts:[{plat:'ig',topic:'Reel: A day in the life of a Hellas installation crew. Raw, real, compelling.'},{plat:'tw',topic:'#FridayField — week\'s field photo + engage with local sports accounts.'}]}
+    ]},
+    {label:'Week 3 · May 12–16 · Proof + Momentum',days:[
+      {name:'Mon',date:'May 12',posts:[{plat:'ig',topic:'Client testimonial: Quote graphic on a photo of the client\'s completed field.'},{plat:'li',topic:'Case study: Municipal parks project — problem, Hellas solution, measurable results.'}]},
+      {name:'Tue',date:'May 13',posts:[{plat:'fb',topic:'"Is your school\'s field safe for student athletes?" — safety-focused with CTA.'},{plat:'tw',topic:'Engage with a national sports safety or turf industry conversation. Add Hellas perspective.'}]},
+      {name:'Wed',date:'May 14',posts:[{plat:'ig',topic:'Carousel: "5 signs your field needs an upgrade." Awareness + subtle CTA.'},{plat:'li',topic:'Industry insight: "Why more facilities are choosing synthetic surfaces in 2026." Trend content.'}]},
+      {name:'Thu',date:'May 15',posts:[{plat:'ig',topic:'Sustainability: Eco-friendly infill, recyclable fibers, Hellas\' environmental commitment.'},{plat:'fb',topic:'Community: A team or school having a great spring season on a Hellas surface.'}]},
+      {name:'Fri',date:'May 16',posts:[{plat:'ig',topic:'Reel: Spring project reveal — high-energy, music-driven edit.'},{plat:'tw',topic:'#FridayField — week 6 of the tradition.'}]}
+    ]},
+    {label:'Week 4 · May 19–23 · Market Share + May Close',days:[
+      {name:'Mon',date:'May 19',posts:[{plat:'li',topic:'"Why more school districts are choosing synthetic turf in 2026" — trend article with Hellas POV.'},{plat:'ig',topic:'Scale post: "X states. X fields. One standard of excellence."'}]},
+      {name:'Tue',date:'May 20',posts:[{plat:'tw',topic:'Industry report share with Hellas commentary. Own the national conversation.'},{plat:'fb',topic:'"Summer planning guide: What to expect when you hire Hellas." Step-by-step overview.'}]},
+      {name:'Wed',date:'May 21',posts:[{plat:'ig',topic:'Team photo or culture post — the people behind Hellas. Brand humanity moment.'},{plat:'li',topic:'Month-close: "What May taught us about sports facility construction in 2026." Reflection post.'}]},
+      {name:'Thu',date:'May 22',posts:[{plat:'fb',topic:'Client project wrap: Recently completed field with quote and project stats.'},{plat:'ig',topic:'Product tech post: Key differentiator — cooling system, drainage, or fiber durability.'}]},
+      {name:'Fri',date:'May 23',posts:[{plat:'ig',topic:'May recap reel: Best fields, moments, and community stories from the month.'},{plat:'tw',topic:'May close + tease summer content: "Big things coming in June."'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'li',pillar:'Education · Week 2',cat:'education',text:'Turf temperature is a bigger deal than most people realize — especially in Texas summers.\n\nStandard synthetic turf can reach temperatures 40–70°F above air temperature. That\'s a safety issue, not just a comfort issue.\n\nHellas\' [product name] system uses [technology] that significantly reduces surface temperatures — keeping athletes safer and extending playtime on the hottest days.\n\nIf surface heat is a concern for your facility, we\'d love to share the data. 📩',tags:'#AthleteHealth #TurfSafety #SportsScience #SyntheticTurf #HellasSports #FacilityManagement',note:'',status:''},
+    
+    {plat:'ig',pillar:'Brand Tech · Week 1',cat:'brand',text:'Not all turf is created equal.\n\nAt Hellas, we engineer our surfaces from the ground up — literally. Our [product line] system uses [key tech feature] that outperforms standard synthetic turf in durability, safety, and playability.\n\nBecause athletes deserve a surface built with science, not just aesthetics.\n\nThat\'s the Hellas difference.',tags:'#HellasTurf #TurfTechnology #SportsScience #AthleteFirst #SyntheticTurf',note:'',status:''},
+    {plat:'fb',pillar:'FAQ · Week 2',cat:'education',text:'One of the most common questions we get: "How long will a Hellas field actually last?"\n\nThe honest answer: 8–12 years with proper maintenance — and many of our fields perform well beyond that.\n\nWhat affects lifespan:\n✅ Fiber and infill system quality\n✅ Volume of use (practice vs. game fields)\n✅ Maintenance routine (annual grooming, infill top-offs)\n✅ Climate and drainage quality\n\nCurious about your specific situation? Drop a comment or message us.',tags:'#SyntheticTurf #FieldLife #AthleticFacilities #TurfMaintenance #HellasTurf',note:'',status:''},
+    {plat:'fb',pillar:'Community · Week 3',cat:'community',text:'We build more than fields. We build places where communities come together. 🤝\n\nThis spring, [School/Org Name] is wrapping up a season on their Hellas field — and it\'s been incredible to watch.\n\nCongrats to everyone who played, coached, and cheered this season. 🏆',tags:'#CommunityFirst #HellasTurf #LocalSports #SupportLocalTeams #GameDay',note:'',status:''},
+    {plat:'tw',pillar:'Brand Voice · Week 1',cat:'brand',text:'The biggest myth about synthetic turf: that it\'s "good enough."\n\nThe best surfaces are engineered — fiber composition, drainage, infill, base system — all working together. That\'s what separates a Hellas field from a commodity install.\n\nDetails matter. We sweat them so your athletes don\'t have to.\n\n#HellasTurf #TurfScience #SportsConstruction',tags:'',note:'',status:''}
+   ]
+  },
+  {id:'jun',num:3,q:'Q2',name:'June 2026',theme:'Social Proof & Conversion',focus:'Convert',topPlat:'Instagram',keyContent:'Proof',ctaGoal:'Quote',
+   weeks:[
+    {label:'Week 1 · Jun 2–6 · Lead With Wins',days:[
+      {name:'Mon',date:'Jun 2',posts:[{plat:'ig',topic:'Summer project announcement: "Hellas crews are on the field. Here\'s what\'s coming."'},{plat:'li',topic:'Q2 project recap: Roundup of April and May completions. Data + visuals.'}]},
+      {name:'Tue',date:'Jun 3',posts:[{plat:'tw',topic:'Industry news: Comment on a summer construction or sports facilities trend.'},{plat:'fb',topic:'Summer promo: "Planning a fall project? Start now and save." CTA to contact form.'}]},
+      {name:'Wed',date:'Jun 4',posts:[{plat:'ig',topic:'Testimonial carousel: 3 client quotes, each on a photo of their completed field.'},{plat:'li',topic:'Deep case study: University or notable installation — scope, challenge, result.'}]},
+      {name:'Thu',date:'Jun 5',posts:[{plat:'fb',topic:'FAQ: "What\'s the difference between Hellas and other turf companies?" Honest, confident.'},{plat:'ig',topic:'Partner or industry association feature — credibility and market positioning.'}]},
+      {name:'Fri',date:'Jun 6',posts:[{plat:'ig',topic:'Reel: "5 fields that changed everything this season." Best June projects.'},{plat:'tw',topic:'#FridayField — week\'s best photo.'}]}
+    ]},
+    {label:'Week 2 · Jun 9–13 · Authority + Proof',days:[
+      {name:'Mon',date:'Jun 9',posts:[{plat:'li',topic:'Award announcement or press feature — credibility and market leadership signal.'},{plat:'ig',topic:'Behind-the-scenes: Quality walkthrough before field handoff. Process transparency.'}]},
+      {name:'Tue',date:'Jun 10',posts:[{plat:'tw',topic:'Stat or data point about sports construction market growth. Own the conversation.'},{plat:'fb',topic:'Client success: A recently completed field with photos and client quote.'}]},
+      {name:'Wed',date:'Jun 11',posts:[{plat:'ig',topic:'Carousel: "Why Hellas is different — 6 things we do that others don\'t."'},{plat:'fb',topic:'Community: Youth sports league or school hosting a summer camp on a Hellas field.'}]},
+      {name:'Thu',date:'Jun 12',posts:[{plat:'li',topic:'Thought leadership: What makes a great sports facility? The Hellas perspective.'},{plat:'ig',topic:'Product durability post: A Hellas field performing in its [X]th season.'}]},
+      {name:'Fri',date:'Jun 13',posts:[{plat:'ig',topic:'Reel: Summer installation in progress — crew, process, craftsmanship.'},{plat:'tw',topic:'#FridayField — consistency.'}]}
+    ]},
+    {label:'Week 3 · Jun 16–20 · Conversion Push',days:[
+      {name:'Mon',date:'Jun 16',posts:[{plat:'li',topic:'"We\'ve completed [X] projects in [region] this year — here\'s what we\'ve learned."'},{plat:'ig',topic:'Client video testimonial or quote graphic — most persuasive content type.'}]},
+      {name:'Tue',date:'Jun 17',posts:[{plat:'tw',topic:'Engage: Ask followers "What sport do you most want to see on a Hellas field?" Community builder.'},{plat:'fb',topic:'FAQ: How does the Hellas installation process work, start to finish?'}]},
+      {name:'Wed',date:'Jun 18',posts:[{plat:'ig',topic:'Sustainability deep dive: Hellas\' commitment to recyclable materials and environmental impact.'},{plat:'fb',topic:'"Book your fall installation now — crews are scheduling through Q3." Urgency CTA.'}]},
+      {name:'Thu',date:'Jun 19',posts:[{plat:'li',topic:'Industry insight: "What the summer construction season tells us about facility priorities heading into fall." Thought leadership.'},{plat:'ig',topic:'Scale moment: Total projects, states served, athletes impacted in 2026 so far.'}]},
+      {name:'Fri',date:'Jun 20',posts:[{plat:'ig',topic:'Reel: Game day action — athletes on a fresh Hellas field. Pure brand energy.'},{plat:'tw',topic:'#FridayField — summer edition.'}]}
+    ]},
+    {label:'Week 4 · Jun 23–27 · Q2 Close',days:[
+      {name:'Mon',date:'Jun 23',posts:[{plat:'li',topic:'Partner spotlight: Feature a key partner relationship. Credibility + reach.'},{plat:'ig',topic:'New project reveal: Tease a July installation starting soon.'}]},
+      {name:'Tue',date:'Jun 24',posts:[{plat:'tw',topic:'Industry commentary: What the first half of 2026 has shown about sports construction trends.'},{plat:'fb',topic:'Community milestone: How many athletes are playing on Hellas fields this summer?'}]},
+      {name:'Wed',date:'Jun 25',posts:[{plat:'ig',topic:'Team culture post: The people who built everything this quarter. Human moment.'},{plat:'li',topic:'Q2 wins: Projects completed, media hits, partnerships formed. Sets up Q3 energy.'}]},
+      {name:'Thu',date:'Jun 26',posts:[{plat:'fb',topic:'Month-close: "Q2 is almost complete. Here\'s a look at what Hellas built this quarter." Retrospective.'},{plat:'ig',topic:'Throwback: Best field Hellas built in Q2. Celebrate the work.'}]},
+      {name:'Fri',date:'Jun 27',posts:[{plat:'ig',topic:'Q2 close reel: "What a quarter." Best projects, clients, moments from April–June.'},{plat:'tw',topic:'Q2 wrap — momentum into Q3 starts now.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'ig',pillar:'Testimonial · Week 1',cat:'proof',text:'"[Client quote — e.g., \'The process was seamless. Hellas delivered exactly what they promised, on time and on budget.\']"\n— [Name, Title, School/Organization]\n\nThat\'s what it\'s all about. 🙏\n\nWe don\'t just build fields — we build trust with every community we serve.',tags:'#ClientLove #HellasTurf #TrustBuilt #SportsConstruction #HappyClients',note:'Overlay quote on photo of their completed field for maximum impact.',status:''},
+    
+    {plat:'li',pillar:'Market Position · Week 2',cat:'market',text:'There are a lot of turf companies out there. Here\'s what makes Hellas different:\n\n✅ We manufacture our own products — no middlemen, no markups\n✅ We install what we build — single point of accountability\n✅ We back our work with industry-leading warranties\n✅ We\'ve completed [X]+ projects across [X] states\n\nWhen choosing a partner for a project that will serve your community for a decade, these things matter.\n\nQuestions? We\'re an open book. 📩',tags:'#HellasSports #SportsConstruction #WhyHellas #TurfInstallation #MarketLeader',note:'',status:''},
+    {plat:'li',pillar:'Case Study · Week 1',cat:'proof',text:'Results matter. Here\'s a snapshot of what we delivered for [Client Name]:\n\n📍 Location: [City, State]\n🏟️ Project: [Brief description]\n⏱️ Timeline: [X weeks], on schedule\n✅ Outcome: [e.g., "A multi-sport field now serving 1,200+ student athletes"]\n\nEvery project starts with a conversation. If you\'re planning a facility upgrade, we\'d love to hear your vision.\n\nDrop a comment or send us a message to get started.',tags:'#CaseStudy #SportsInfrastructure #FacilityUpgrade #HellasSports',note:'',status:''}
+   ]
+  },
+  {id:'jul',num:4,q:'Q3',name:'July 2026',theme:'Market Share Push',focus:'Compete',topPlat:'LinkedIn',keyContent:'Insights',ctaGoal:'Qualify',
+   weeks:[
+    {label:'Week 1 · Jul 7–11 · Q3 Kickoff — Industry Ownership',days:[
+      {name:'Mon',date:'Jul 7',posts:[{plat:'li',topic:'"State of sports construction in 2026" — Hellas POV article. Claim the industry voice.'},{plat:'ig',topic:'Mid-year project reveal — summer installation completed and ready for fall season.'}]},
+      {name:'Tue',date:'Jul 8',posts:[{plat:'tw',topic:'"The sports construction industry is changing. 3 trends every facility manager should know."'},{plat:'fb',topic:'"What makes a great sports surface? 4 things we look for in every install."'}]},
+      {name:'Wed',date:'Jul 9',posts:[{plat:'ig',topic:'Product innovation: Newest turf system or tech — what it does, why it matters.'},{plat:'li',topic:'"What to look for when comparing synthetic turf vendors." Hellas wins when buyers ask right questions.'}]},
+      {name:'Thu',date:'Jul 10',posts:[{plat:'fb',topic:'Community: Summer sports camp feature — kids using Hellas fields during summer programs.'},{plat:'li',topic:'Industry positioning: "How Hellas approaches fall and winter installations." Process and expertise post.'}]},
+      {name:'Fri',date:'Jul 11',posts:[{plat:'ig',topic:'Reel: Summer installation in progress — crew, process, craftsmanship.'},{plat:'tw',topic:'#FridayField — mid-summer edition. Tag a team playing on a Hellas surface.'}]}
+    ]},
+    {label:'Weeks 2–4 · Jul 14–25 · Thought Leadership + Urgency',days:[
+      {name:'Mon',date:'Jul 14',posts:[{plat:'ig',topic:'Before/after: Summer project completed — dramatic visual transformation.'},{plat:'li',topic:'"ROI of sports surface investment: What the numbers actually look like." Data-driven authority.'}]},
+      {name:'Wed',date:'Jul 16',posts:[{plat:'ig',topic:'Multi-sport facility feature: A field built for multiple sports — versatility and value.'},{plat:'fb',topic:'Mid-year stats: "Here\'s what we\'ve built in 2026 so far." Scale and momentum.'}]},
+      {name:'Mon',date:'Jul 21',posts:[{plat:'li',topic:'Case study: Private sports complex — client, scope, business outcome. B2B angle.'},{plat:'ig',topic:'Client video clip or testimonial — authenticity drives trust.'}]},
+      {name:'Wed',date:'Jul 23',posts:[{plat:'ig',topic:'Sustainability: Eco-credentials, responsible sourcing, long-term commitment.'},{plat:'tw',topic:'Industry event or trade show commentary — Hellas perspective.'}]},
+      {name:'Fri',date:'Jul 25',posts:[{plat:'ig',topic:'July recap reel: Summer\'s best projects, tease for August season prep content.'},{plat:'li',topic:'"Fall season is almost here. Is your field ready?" Urgency + CTA for fall leads.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'li',pillar:'Industry Voice · Week 1',cat:'market',text:'The sports construction industry is evolving fast — and if you\'re a facility manager, you need to know what\'s changing.\n\nThree trends we\'re seeing in 2026:\n\n1. Heat-reduction technology is no longer optional — it\'s expected\n2. Multi-sport versatility is driving more conversion projects\n3. Sustainability requirements are appearing in RFPs\n\nHellas has been ahead of all three.\n\nIf you want to talk through how these trends affect your facility decision, we\'re happy to connect. 📩 [link]',tags:'#SportsConstruction #TurfTrends #FacilityManagement #AthleticDirector #HellasSports',note:'',status:''},
+    
+    {plat:'ig',pillar:'Brand Craft · Week 2',cat:'brand',text:'Behind every great field is a team that obsesses over the details. 🔬\n\nFrom fiber technology to drainage systems to custom line marking — nothing gets installed until it\'s right.\n\nThat\'s not just our process. It\'s our promise.\n\nBuilt by Hellas. Built to last.',tags:'#BuiltToLast #HellasTurf #QualityCraftsmanship #SportsConstruction #TurfEngineering',note:'Pair with a close-up product detail or BTS installation photo.',status:''},
+    {plat:'tw',pillar:'Data Drop · Week 1',cat:'market',text:'Synthetic turf adoption in US schools is up [X]% in the past 5 years.\n\nThe reasons: lower long-term cost, better playability, and reduced maintenance burden on staff.\n\nHellas has been building these fields since [year]. We\'ve seen what works — and what doesn\'t.\n\n#HellasTurf #SportsConstruction #TurfData #SchoolSports',tags:'',note:'',status:''}
+   ]
+  },
+  {id:'aug',num:5,q:'Q3',name:'August 2026',theme:'Back to Season',focus:'Season',topPlat:'Instagram',keyContent:'Athlete',ctaGoal:'Next Year',
+   weeks:[
+    {label:'Week 1 · Aug 4–8 · Season Hype + Community',days:[
+      {name:'Mon',date:'Aug 4',posts:[{plat:'ig',topic:'"Season\'s almost here. Is your field ready?" — countdown hype post. Athletes, action, energy.'},{plat:'li',topic:'"Back to season: What facility managers should check before the first game." Maintenance checklist.'}]},
+      {name:'Tue',date:'Aug 5',posts:[{plat:'fb',topic:'"Which Hellas fields are opening this fall?" — feature 2–3 newly completed facilities.'},{plat:'tw',topic:'"Football season starts in [X] weeks. Thousands of student athletes are about to take the field." Brand pride.'}]},
+      {name:'Wed',date:'Aug 6',posts:[{plat:'ig',topic:'First practice reel: Teams back on the field. High-energy action, Hellas surfaces front and center.'},{plat:'li',topic:'"What separates a championship facility from an average one." Aspirational B2B content.'}]},
+      {name:'Thu',date:'Aug 7',posts:[{plat:'ig',topic:'School shoutout series: Feature a school opening season on a new Hellas field. Tag them.'},{plat:'fb',topic:'"Is your school in our service area? Here\'s where Hellas operates and what we can build for you."'}]},
+      {name:'Fri',date:'Aug 8',posts:[{plat:'ig',topic:'Reel: Season kickoff montage — game day energy across multiple Hellas fields.'},{plat:'tw',topic:'#FridayField — first game day edition. Which teams are opening on Hellas?'}]}
+    ]},
+    {label:'Weeks 2–4 · Aug 11–29 · Ride the Season Energy',days:[
+      {name:'Mon',date:'Aug 11',posts:[{plat:'li',topic:'"Planning for 2027? Now is the time to start." Begin planting seeds for next-year pipeline.'},{plat:'ig',topic:'Game night photo: Full stadium, lights, Hellas field center stage. Pure brand imagery.'}]},
+      {name:'Wed',date:'Aug 13',posts:[{plat:'ig',topic:'Fan submission / UGC: A photo from a fan or player on a Hellas field. Authentic, raw.'},{plat:'fb',topic:'"Shoutout to every school and team opening season on a Hellas field this fall." Tag fest.'}]},
+      {name:'Mon',date:'Aug 18',posts:[{plat:'li',topic:'Case study: School that upgraded mid-year and opened on time for fall season.'},{plat:'ig',topic:'Hellas field under the lights: Friday night atmosphere. Aspirational and emotional.'}]},
+      {name:'Wed',date:'Aug 20',posts:[{plat:'ig',topic:'Durability post: "These fields are in their [X]th season and still going strong." Longevity proof.'},{plat:'tw',topic:'Game day engagement: "Which team on a Hellas field has the biggest game tonight?" Drive convo.'}]},
+      {name:'Fri',date:'Aug 29',posts:[{plat:'ig',topic:'August recap: "The season is here. The fields are ready. So are we." Into September.'},{plat:'li',topic:'August close: "The season is here. The fields are ready. So are we." Momentum into September.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'ig',pillar:'Season Launch · Week 1',cat:'season',text:'The lights are on. The lines are fresh. The season is here. 🏈\n\nThere\'s nothing quite like the first game of the year on a Hellas field. All that planning, all that work — and then the athletes take the field and make it mean something.\n\nGo get \'em this season. We\'ll be cheering you on. 💪',tags:'#HellasTurf #GameDay #FridayNightLights #FootballSeason #SportsFamily #SeasonKickoff',note:'Use with stadium lights photo or opening night reel. High emotional impact.',status:''},
+    {plat:'fb',pillar:'Community · Week 1',cat:'community',text:'Fall season is officially underway — and we couldn\'t be more proud of every school and team stepping onto a Hellas field this year. 🙌\n\nFrom tiny Friday night stadiums to major university venues — these surfaces represent communities coming together.\n\nTag a team you\'re rooting for this season. Let\'s celebrate them. 👇',tags:'#CommunityFirst #HellasTurf #FallSports #SupportLocalTeams #GameDay',note:'',status:''},
+    
+    {plat:'tw',pillar:'Season Pride · Week 1',cat:'season',text:'Football season starts this week. Thousands of student athletes are about to take the field.\n\nA lot of them will be playing on Hellas turf.\n\nThat never gets old.\n\n#HellasTurf #FootballSeason #SportsConstruction #GameDay',tags:'',note:'',status:''}
+   ]
+  },
+  {id:'sep',num:6,q:'Q3',name:'September 2026',theme:'Close & Convert',focus:'Convert',topPlat:'LinkedIn',keyContent:'ROI',ctaGoal:'Pipeline',
+   weeks:[
+    {label:'Week 1 · Sep 1–5 · Season Is Live — Hellas Everywhere',days:[
+      {name:'Mon',date:'Sep 1',posts:[{plat:'ig',topic:'Opening weekend roundup: Multiple Hellas fields hosting first games. Community celebration.'},{plat:'li',topic:'"The 2026 season is underway. Here\'s what we built to make it happen." + CTA for 2027.'}]},
+      {name:'Tue',date:'Sep 2',posts:[{plat:'tw',topic:'Season engagement: "First weekend of games. What\'s the score at your Hellas field?"'},{plat:'fb',topic:'Game day community post: Celebrate local teams on Hellas surfaces. Tag schools.'}]},
+      {name:'Wed',date:'Sep 3',posts:[{plat:'ig',topic:'Season testimonial: A coach or AD sharing their in-season experience with their Hellas field.'},{plat:'li',topic:'"Planning your 2027 capital budget? Here\'s where sports surfaces fit in." Budget-season content.'}]},
+      {name:'Thu',date:'Sep 4',posts:[{plat:'fb',topic:'"Thinking about a 2027 project? Get on our calendar before year end." Early booking urgency.'},{plat:'ig',topic:'Longevity post: A Hellas field entering its [X]th season — still performing, still beautiful.'}]},
+      {name:'Fri',date:'Sep 5',posts:[{plat:'ig',topic:'Reel: Opening night highlights across multiple Hellas fields. Community pride + brand visibility.'},{plat:'tw',topic:'#FridayField — most important week of the year. Game night on a Hellas surface.'}]}
+    ]},
+    {label:'Weeks 2–4 · Sep 8–26 · Close Strong, Set Up 2027',days:[
+      {name:'Mon',date:'Sep 8',posts:[{plat:'li',topic:'"How to evaluate your field\'s performance — and when to plan a replacement." Pipeline content.'},{plat:'ig',topic:'Behind-the-scenes: Hellas post-season support — maintenance partners, field care guidance.'}]},
+      {name:'Wed',date:'Sep 10',posts:[{plat:'ig',topic:'Carousel: "6 months of Hellas — a look back at Q2 and Q3 2026." Brand retrospective.'},{plat:'fb',topic:'Community milestone: Total athletes playing on Hellas fields this season. Scale moment.'}]},
+      {name:'Mon',date:'Sep 15',posts:[{plat:'li',topic:'New project announcement: Fall/winter installation tease — keep the content flowing into Q4.'},{plat:'ig',topic:'New project announcement: Fall/winter installation — keep the momentum going.'}]},
+      {name:'Wed',date:'Sep 17',posts:[{plat:'ig',topic:'Year\'s best fields: "Fields we\'re most proud of from 2026." Top project showcase.'},{plat:'tw',topic:'"What the 2026 sports construction season taught us." Hellas POV year-in-review.'}]},
+      {name:'Fri',date:'Sep 26',posts:[{plat:'ig',topic:'Q3 close reel: "What a six months." The definitive Hellas H1 2026 brand moment.'},{plat:'li',topic:'Q3 wrap + year preview: Wins, lessons, and what\'s coming in Q4.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'li',pillar:'Q3 Momentum · Week 3',cat:'recap',text:'The season is underway. The fields are performing. And we\'re already looking ahead.\n\n2027 project slots are now open — and if your facility is on the list, the best time to start is today.\n\nHere\'s what early planning gets you:\n✅ Better scheduling windows\n✅ More time for design and customization\n✅ Less disruption to your season prep\n✅ Often, better pricing\n\nLet\'s build something great together.\n\n📩 [link]',tags:'#SportsConstruction #2027Projects #FieldRenovation #HellasSports #FacilityPlanning',note:'',status:''},
+    {plat:'ig',pillar:'Season Celebration · Week 1',cat:'community',text:'Opening weekend. Packed stands. Fresh turf. 🏈\n\nThere\'s nothing quite like it.\n\nThis is why we do what we do — building fields that become the center of communities, the backdrop for memories, the stage for moments people will talk about for years.\n\nProud of every field. Proud of every community. Let\'s have a great season. 💚',tags:'#HellasTurf #OpeningWeekend #GameDay #FridayNightLights #CommunityFirst #SportsFamily',note:'Post opening weekend with stadium + crowd shot. Highest emotional impact of the 6-month plan.',status:''},
+    {plat:'li',pillar:'Q3 Close · Week 4',cat:'recap',text:'What a six months.\n\nQ2–Q3 2026 in numbers:\n🏟️ [X] projects completed\n📍 [X] states served\n🌱 [X] acres of turf installed\n👥 [X,000]+ athletes now playing on Hellas surfaces\n\nNone of this happens without the teams, communities, and partners who trust us with their fields.\n\nAs we head into Q4, 2027 slots are open. If your facility has a project on the horizon — now is the time.\n\n📩 [link]',tags:'#HellasSports #YearInReview #SportsConstruction #2026Projects #BuildingCommunity',note:'',status:''},
+    {plat:'ig',pillar:'Year\'s Best · Week 3',cat:'close',text:'Some fields are just special.\n\nHere are a few of our favorites from 2026 — projects that challenged us, inspired us, and reminded us why we\'ve been doing this for [X] years.\n\nSwipe to see the work. 👉\n\nAnd if you\'ve got a field we should add to this list next year — let\'s talk. 📩 Link in bio.',tags:'#HellasTurf #BestOf2026 #SportsConstruction #BuiltByHellas #AthleticFacilities',note:'',status:''}
+   ]
+  },
+
+  // ── Q4 ──────────────────────────────────────────────────────────────────────
+  {id:'oct',num:7,q:'Q4',name:'October 2026',theme:'Season in Full Swing',focus:'Engage',topPlat:'Instagram',keyContent:'Game Day',ctaGoal:'2027 Pipeline',
+   weeks:[
+    {label:'Week 1 · Oct 1–2 · Mid-Season Momentum',days:[
+      {name:'Wed',date:'Oct 1',posts:[{plat:'ig',topic:'Mid-season field photo: Packed Friday night stadium on a Hellas surface. Pure atmosphere.'},{plat:'li',topic:'"Mid-season check-in: How are Hellas fields performing across the country?" — thought leadership roundup.'}]},
+      {name:'Thu',date:'Oct 2',posts:[{plat:'fb',topic:'Community shoutout: A team having a standout October on a Hellas field. Tag them.'},{plat:'tw',topic:'Game week stat or fun fact about the number of athletes playing on Hellas surfaces this fall.'}]},
+      {name:'—',date:'',posts:[]},{name:'—',date:'',posts:[]},{name:'Fri',date:'Oct 3',posts:[{plat:'ig',topic:'Reel: Best game day moments from the first half of fall season — energy, lights, fans.'},{plat:'tw',topic:'#FridayField — October edition. Which field has the biggest game tonight?'}]}
+    ]},
+    {label:'Week 2 · Oct 6–10 · Education + Pipeline',days:[
+      {name:'Mon',date:'Oct 6',posts:[{plat:'li',topic:'"Now is the time to plan your 2027 field project. Here\'s why starting in Q4 gives you an edge." Pipeline content.'},{plat:'ig',topic:'Product spotlight: Feature a Hellas surface system with performance specs — credibility content.'}]},
+      {name:'Tue',date:'Oct 7',posts:[{plat:'tw',topic:'Industry insight: Trends shaping sports facility construction heading into 2027.'},{plat:'fb',topic:'FAQ: "What\'s the process for getting a Hellas quote?" — clear, transparent, with CTA.'}]},
+      {name:'Wed',date:'Oct 8',posts:[{plat:'ig',topic:'Before/after carousel: A fall-season reveal — field that opened this year looking incredible mid-season.'},{plat:'li',topic:'Case study: A facility that planned early and saw the results — ROI-focused story.'}]},
+      {name:'Thu',date:'Oct 9',posts:[{plat:'fb',topic:'Safety post: How Hellas surfaces are engineered for athlete safety — especially in fall contact sports.'},{plat:'ig',topic:'People of Hellas: Feature an installation crew member — their story, their craft.'}]},
+      {name:'Fri',date:'Oct 10',posts:[{plat:'ig',topic:'Reel: Friday night lights — a Hellas field under full stadium lighting. Cinematic, emotional.'},{plat:'tw',topic:'#FridayField week 2 of October.'}]}
+    ]},
+    {label:'Week 3 · Oct 13–17 · Social Proof + 2027 Urgency',days:[
+      {name:'Mon',date:'Oct 13',posts:[{plat:'li',topic:'Client testimonial post: A facility manager sharing results from their Hellas installation mid-season.'},{plat:'ig',topic:'Testimonial graphic: Coach or AD quote overlaid on game-day field photo.'}]},
+      {name:'Tue',date:'Oct 14',posts:[{plat:'tw',topic:'Stat: How many Hellas fields are active this fall season. Scale and credibility.'},{plat:'fb',topic:'"Are you budgeting for a 2027 facility upgrade? Here\'s how to build the case internally." Guide post.'}]},
+      {name:'Wed',date:'Oct 15',posts:[{plat:'ig',topic:'Sustainability spotlight: Hellas\' environmental commitment — recyclable fibers, reduced water use.'},{plat:'li',topic:'"Planning a 2027 field project? 5 questions to answer before your first vendor call." Authority content.'}]},
+      {name:'Thu',date:'Oct 16',posts:[{plat:'fb',topic:'Community feature: A school or youth organization having their best season on a Hellas field.'},{plat:'ig',topic:'Multi-sport facility feature: One field, multiple sports, maximum value.'}]},
+      {name:'Fri',date:'Oct 17',posts:[{plat:'ig',topic:'Reel: "This is why we build." Emotional montage of athletes, fans, community moments.'},{plat:'tw',topic:'#FridayField — playoff season is starting. Which Hellas field has the biggest stakes?'}]}
+    ]},
+    {label:'Week 4 · Oct 20–24 · Market Position + Momentum',days:[
+      {name:'Mon',date:'Oct 20',posts:[{plat:'li',topic:'Market insight: "The state of sports facility construction heading into 2027." Industry positioning.'},{plat:'ig',topic:'New project tease: A fall/winter installation starting soon — keep the content flowing.'}]},
+      {name:'Tue',date:'Oct 21',posts:[{plat:'tw',topic:'Industry news: Comment on a sports construction or facility management trend. Own the conversation.'},{plat:'fb',topic:'"Get your 2027 project on our calendar before year-end." Urgency + CTA.'}]},
+      {name:'Wed',date:'Oct 22',posts:[{plat:'ig',topic:'Innovation post: Hellas technology differentiation — what makes the product better than alternatives.'},{plat:'li',topic:'Market share content: "Here\'s how Hellas approaches projects other companies turn away." Confidence post.'}]},
+      {name:'Thu',date:'Oct 23',posts:[{plat:'fb',topic:'Partner spotlight: Feature a key partner — engineering firm, school district, sports organization.'},{plat:'ig',topic:'BTS: Hellas team at work — engineering, design, or off-season install in progress.'}]},
+      {name:'Fri',date:'Oct 24',posts:[{plat:'ig',topic:'October recap reel: Best game day moments, project news, and community stories.'},{plat:'tw',topic:'October close — playoff season is here, Hellas fields are everywhere.'}]}
+    ]}
+   ],
+   captions:[
+    
+    {plat:'ig',pillar:'Game Day · Week 1',cat:'community',text:'Friday night lights. Packed stands. A Hellas field in the center of it all. 🏈\n\nThis is what it\'s all for.\n\nProud of every facility. Proud of every community. Let\'s have a great playoff run. 💪',tags:'#FridayNightLights #HellasTurf #GameDay #PlayoffSeason #FallFootball #CommunityFirst',note:'Use with stadium atmosphere shot — lights, crowd, field visible. High engagement post.',status:''},
+    {plat:'li',pillar:'Thought Leadership · Week 3',cat:'education',text:'Planning a 2027 facility upgrade? Before your first vendor call, make sure you can answer these 5 questions:\n\n1. What sports and usage levels will this surface support?\n2. What\'s your realistic budget — including base prep and drainage?\n3. What\'s your timeline relative to your season schedule?\n4. Do you need a single-source partner or are you managing multiple vendors?\n5. What does long-term maintenance look like for your staff?\n\nHellas can help you answer all of them. 📩',tags:'#FacilityPlanning #AthleticDirector #FacilityManagement #SportsConstruction #HellasSports',note:'',status:''},
+    {plat:'fb',pillar:'Community · Week 3',cat:'community',text:'Playoff season is here — and we\'re cheering on every team competing on a Hellas field. 🏆\n\nFrom small-town stadiums to major facilities, these surfaces were built for moments like this. The pressure, the atmosphere, the community coming together — that\'s why we do what we do.\n\nTag a team you\'re rooting for this postseason. 👇',tags:'#PlayoffSeason #HellasTurf #FallSports #CommunityFirst #FridayNightLights',note:'',status:''}
+   ]
+  },
+
+  {id:'nov',num:8,q:'Q4',name:'November 2026',theme:'Championships & 2027 Planning',focus:'Convert',topPlat:'LinkedIn',keyContent:'Pipeline',ctaGoal:'2027 Bookings',
+   weeks:[
+    {label:'Week 1 · Nov 3–7 · Championship Season Energy',days:[
+      {name:'Mon',date:'Nov 3',posts:[{plat:'ig',topic:'Championship season post: "The fields we built are hosting championships this month." Pride + visibility.'},{plat:'li',topic:'"Championship season is here. Here\'s what it means when your facility is game-day ready." Brand story.'}]},
+      {name:'Tue',date:'Nov 4',posts:[{plat:'tw',topic:'Championship shoutout: Tag teams or programs competing on Hellas fields in championship games.'},{plat:'fb',topic:'Community celebration: A team making a deep playoff run on their Hellas field.'}]},
+      {name:'Wed',date:'Nov 5',posts:[{plat:'ig',topic:'Field under lights at a championship game — dramatic, cinematic, maximum brand impact.'},{plat:'li',topic:'Year-in-review teaser: "2026 has been an incredible year for Hellas. Here\'s a preview of what we built."'}]},
+      {name:'Thu',date:'Nov 6',posts:[{plat:'fb',topic:'Fan engagement: "Which championship game this weekend is on a Hellas field?" Drive conversation.'},{plat:'ig',topic:'Project reveal: A late-season installation completed and ready for winter/spring programs.'}]},
+      {name:'Fri',date:'Nov 7',posts:[{plat:'ig',topic:'Reel: Championship week — the biggest games, the brightest lights, all on Hellas turf.'},{plat:'tw',topic:'#FridayField — championship edition. The stakes have never been higher.'}]}
+    ]},
+    {label:'Week 2 · Nov 10–14 · 2027 Pipeline + Education',days:[
+      {name:'Mon',date:'Nov 10',posts:[{plat:'li',topic:'"End-of-year planning: Where sports facility budgets should go in 2027." Decision-maker content.'},{plat:'ig',topic:'Product tech deep dive: The engineering behind Hellas surfaces — fiber, drainage, infill system.'}]},
+      {name:'Tue',date:'Nov 11',posts:[{plat:'tw',topic:'Veterans Day: Acknowledge any Hellas team members who served. Human, authentic moment.'},{plat:'fb',topic:'"Is a field renovation on your 2027 capital plan? Here\'s how to scope it." Guide post.'}]},
+      {name:'Wed',date:'Nov 12',posts:[{plat:'ig',topic:'Case study carousel: 3 projects from 2026 — the challenge, the build, the result.'},{plat:'li',topic:'"The ROI of investing in a quality sports surface: a 10-year look." Long-form authority piece.'}]},
+      {name:'Thu',date:'Nov 13',posts:[{plat:'fb',topic:'FAQ: "How far in advance should we plan a field renovation?" — answer with Hellas context and CTA.'},{plat:'ig',topic:'People of Hellas: End-of-season feature on the installation teams who built 2026\'s projects.'}]},
+      {name:'Fri',date:'Nov 14',posts:[{plat:'ig',topic:'Reel: A look back at the best Hellas builds of 2026. Year-in-review energy.'},{plat:'tw',topic:'Industry reflection: What 2026 taught us about sports facility construction.'}]}
+    ]},
+    {label:'Week 3 · Nov 17–21 · Hard Close + Gratitude',days:[
+      {name:'Mon',date:'Nov 17',posts:[{plat:'li',topic:'Year-in-review preview: "2026 has been an incredible year for Hellas. Here\'s a look at what we built."'},{plat:'ig',topic:'Gratitude post: Thanking the clients, partners, and communities that made 2026 great.'}]},
+      {name:'Tue',date:'Nov 18',posts:[{plat:'tw',topic:'2026 stat drop: Fields built, states served, athletes impacted. Own the year-end narrative.'},{plat:'fb',topic:'"Thank you to every school, district, and facility that trusted Hellas in 2026." Community gratitude.'}]},
+      {name:'Wed',date:'Nov 19',posts:[{plat:'ig',topic:'Award or recognition: Any 2026 industry recognition, certification, or media coverage. Own it.'},{plat:'li',topic:'Partner appreciation: Feature a key 2026 partner relationship and what it meant for the projects.'}]},
+      {name:'Thu',date:'Nov 20',posts:[{plat:'fb',topic:'"2027 project inquiry form is open. First-come, first-scheduled." Create urgency.'},{plat:'ig',topic:'BTS: Hellas team end-of-season — the people behind the year\'s work.'}]},
+      {name:'Fri',date:'Nov 21',posts:[{plat:'ig',topic:'Pre-Thanksgiving post: Gratitude for the communities Hellas serves. Warm, human, genuine.'},{plat:'tw',topic:'Thanksgiving week: What Hellas is grateful for in 2026. Authentic brand moment.'}]}
+    ]},
+    {label:'Week 4 · Nov 24–25 · Light Week + Momentum Into December',days:[
+      {name:'Mon',date:'Nov 24',posts:[{plat:'ig',topic:'Post-holiday field photo: A Hellas surface looking great heading into late-season play.'},{plat:'li',topic:'"December planning: How to make the most of the off-season for your facility." Timely content.'}]},
+      {name:'Tue',date:'Nov 25',posts:[{plat:'tw',topic:'Late-season check-in: Engaging with any championship action still happening on Hellas fields.'},{plat:'fb',topic:'December preview: "Big announcements and project reveals coming in December. Stay tuned."'}]},
+      {name:'—',date:'',posts:[]},{name:'—',date:'',posts:[]},{name:'—',date:'',posts:[]}
+    ]}
+   ],
+   captions:[
+    {plat:'ig',pillar:'Championship Season · Week 1',cat:'community',text:'Championship season hits different when you built the field. 🏆\n\nThis month, facilities we\'ve been part of are hosting some of the biggest games of the year. The atmosphere, the stakes, the community energy — this is exactly what we build for.\n\nProud of every facility. Rooting for every team. Let\'s go. 💪',tags:'#ChampionshipSeason #HellasTurf #GameDay #FridayNightLights #BuiltForThis #SportsFamily',note:'Championship week content — use with a game-day field photo or stadium atmosphere shot.',status:''},
+    
+    {plat:'ig',pillar:'Gratitude · Week 3',cat:'community',text:'Grateful doesn\'t cover it.\n\nTo every school, district, municipality, and facility that trusted Hellas with their project in 2026 — thank you. These aren\'t just fields. They\'re places where communities gather, where athletes grow, where memories get made.\n\nThank you for letting us be part of it. 🙏',tags:'#HellasTurf #Grateful #CommunityFirst #SportsFamily #2026Projects #BuildingCommunity',note:'Thanksgiving week post. Warm, genuine, no hard CTA. High organic engagement.',status:''},
+    {plat:'li',pillar:'ROI Content · Week 2',cat:'education',text:'The question we hear most from facility administrators: "How do we justify the investment?"\n\nHere\'s the honest answer over a 10-year window:\n\n💰 Lower annual maintenance costs vs. natural grass\n📅 More usable playing days per year\n🏟️ Higher facility utilization across sports and seasons\n⚡ Reduced water, labor, and chemical costs\n🏆 Recruiting and community perception advantages\n\nThe math usually surprises people — in the right direction.\n\nWant to run the numbers for your facility? We\'re happy to help. 📩',tags:'#FacilityROI #SportsConstruction #AthleticDirector #FacilityPlanning #HellasSports #SyntheticTurf',note:'',status:''}
+   ]
+  },
+
+  {id:'dec',num:9,q:'Q4',name:'December 2026',theme:'Year in Review & 2027 Kickoff',focus:'Reflect + Launch',topPlat:'LinkedIn',keyContent:'Year Recap',ctaGoal:'2027 Signed',
+   weeks:[
+    {label:'Week 1 · Dec 1–5 · Year in Review Begins',days:[
+      {name:'Mon',date:'Dec 1',posts:[{plat:'ig',topic:'"December is here. What a year." Launch a month-long year-in-review content series.'},{plat:'li',topic:'"2026 in numbers: A look at what Hellas built this year." Impressive stats + project roundup.'}]},
+      {name:'Tue',date:'Dec 2',posts:[{plat:'tw',topic:'2026 stat: Total fields, states, athletes. Set the year-end tone with scale and pride.'},{plat:'fb',topic:'2026 project highlights: Feature 3–4 of the best projects from the year with photos.'}]},
+      {name:'Wed',date:'Dec 3',posts:[{plat:'ig',topic:'Carousel: "The best fields of 2026" — a curated visual retrospective of top Hellas projects.'},{plat:'li',topic:'"What we learned in 2026: Lessons from a year of building." Authentic thought leadership.'}]},
+      {name:'Thu',date:'Dec 4',posts:[{plat:'fb',topic:'Community feature: The most meaningful community story from 2026 — a school, team, or moment that stood out.'},{plat:'ig',topic:'People of Hellas: 2026 team feature — the faces behind the year\'s work.'}]},
+      {name:'Fri',date:'Dec 5',posts:[{plat:'ig',topic:'Reel: "2026 Hellas Year in Review" — the best project moments, game days, and reveals of the year.'},{plat:'tw',topic:'2026 year-in-review thread: Key milestones, projects, and moments from the year.'}]}
+    ]},
+    {label:'Week 2 · Dec 8–12 · Client Appreciation + 2027 Launch',days:[
+      {name:'Mon',date:'Dec 8',posts:[{plat:'li',topic:'"Thank you to every client and partner who made 2026 possible." Gratitude + subtle 2027 setup.'},{plat:'ig',topic:'Client appreciation carousel: Feature photos from 2026 projects with client names and kind words.'}]},
+      {name:'Tue',date:'Dec 9',posts:[{plat:'tw',topic:'2027 tease: "Big things are already in the works for 2027. Stay tuned." Build anticipation.'},{plat:'fb',topic:'"2027 is almost here — and we\'re already excited about what\'s coming. Stay tuned." Forward-looking teaser.'}]},
+      {name:'Wed',date:'Dec 10',posts:[{plat:'ig',topic:'2027 tease post: A sneak peek at a project already confirmed for next year. Build excitement.'},{plat:'li',topic:'"2027 project planning guide: What to do in December to be ready for spring installation." Practical content.'}]},
+      {name:'Thu',date:'Dec 11',posts:[{plat:'fb',topic:'Holiday post: Hellas team wishing the sports community a great holiday season. Warm and human.'},{plat:'ig',topic:'Holiday field photo: A Hellas surface looking pristine in winter — beautiful brand imagery.'}]},
+      {name:'Fri',date:'Dec 12',posts:[{plat:'ig',topic:'Reel: A winter installation in progress — Hellas crews working year-round. Brand dedication.'},{plat:'tw',topic:'"We don\'t stop when the season ends. Neither should your planning." 2027 CTA.'}]}
+    ]},
+    {label:'Week 3 · Dec 15–19 · Final Push + Holiday',days:[
+      {name:'Mon',date:'Dec 15',posts:[{plat:'li',topic:'Year-end reflection: "Looking back on 2026 and the facilities that made it memorable." Gratitude content.'},{plat:'ig',topic:'Innovation preview: A new Hellas product or capability coming in 2027. Generate anticipation.'}]},
+      {name:'Tue',date:'Dec 16',posts:[{plat:'tw',topic:'Year-end industry reflection: What the sports construction space looked like in 2026 vs. 2025.'},{plat:'fb',topic:'"Our team is taking a holiday break, but our inquiry form is always open." Keep leads flowing.'}]},
+      {name:'Wed',date:'Dec 17',posts:[{plat:'ig',topic:'Holiday gratitude post: From the Hellas team to the sports community — thank you for an incredible year.'},{plat:'li',topic:'"Looking ahead: Our vision for sports facility construction in 2027." Forward-looking brand piece.'}]},
+      {name:'Thu',date:'Dec 18',posts:[{plat:'fb',topic:'Holiday countdown: "X days until the new year. Is your 2027 project on our calendar?" Last push.'},{plat:'ig',topic:'Team holiday photo or culture moment — the people of Hellas closing out a great year.'}]},
+      {name:'Fri',date:'Dec 19',posts:[{plat:'ig',topic:'Pre-holiday field photo: "We\'ll be back in the new year with big things. Happy holidays." Closing post.'},{plat:'tw',topic:'Holiday sign-off: Heartfelt, brief, genuine. Thank the sports community for 2026.'}]}
+    ]},
+    {label:'Week 4 · Dec 22–31 · Holiday Wind-Down',days:[
+      {name:'Mon',date:'Dec 22',posts:[{plat:'ig',topic:'Christmas week content: Simple, warm — a field photo with holiday message from Hellas.'},{plat:'fb',topic:'Happy holidays from the Hellas family to yours. Community-first, genuine.'}]},
+      {name:'—',date:'',posts:[]},
+      {name:'Wed',date:'Dec 24',posts:[{plat:'ig',topic:'Christmas Eve: A quiet, beautiful field photo. "Merry Christmas from Hellas." No sell, just warmth.'}]},
+      {name:'—',date:'',posts:[]},
+      {name:'Fri',date:'Dec 26',posts:[{plat:'ig',topic:'Post-holiday: "Hope you had a great holiday. 2027 is almost here — and we\'re ready." Energy reset.'},{plat:'li',topic:'"The new year starts Monday. If 2027 has a field project in it, let\'s connect this week." Final close.'}]}
+    ]}
+   ],
+   captions:[
+    {plat:'ig',pillar:'Year in Review · Week 1',cat:'recap',text:'What a year. 🙌\n\n2026 in numbers:\n🏟️ [X] facilities built\n📍 [X] states served\n🌱 [X] acres of Hellas surface installed\n👥 [X,000]+ athletes playing on Hellas fields this season\n\nNone of it happens without the communities that trusted us, the partners who showed up, and the team that builds every single day.\n\nThank you. And here\'s to an even bigger 2027. 💚',tags:'#HellasTurf #YearInReview #2026Recap #SportsConstruction #BuildingCommunity #ThankYou',note:'Pin this to your profile on Dec 1. Your single most important awareness post of the year.',status:''},
+    
+    {plat:'ig',pillar:'Holiday · Week 2',cat:'community',text:'Happy holidays from the entire Hellas team. 🎄\n\nThis year, we had the privilege of building fields that brought communities together — and watching those communities show up for every game, every practice, every championship moment.\n\nThat\'s what it\'s all about. Thank you for being part of it.\n\nSee you in 2027. 💚',tags:'#HappyHolidays #HellasTurf #CommunityFirst #ThankYou #2026 #SeeYouIn2027',note:'Dec 22–24. No CTA. Pure warmth and gratitude.',status:''},
+    {plat:'li',pillar:'2027 Vision · Week 3',cat:'brand',text:'As we close out 2026, we\'re already thinking hard about what 2027 looks like for sports facility construction.\n\nA few things we\'re watching:\n\n🔬 Advances in cooling technology for high-heat environments\n♻️ Growing demand for sustainable surface systems\n🏟️ Multi-sport versatility becoming the new standard\n📊 Data-driven facility planning gaining traction\n\nHellas is investing in all of it. We\'re building not just for today\'s athlete, but for the next generation.\n\nHere\'s to 2027.',tags:'#SportsConstruction #2027Vision #TurfInnovation #FacilityPlanning #HellasSports #BuildingTheFuture',note:'Dec 17. Forward-looking thought leadership — great for exec sharing.',status:''}
+   ]
+  }
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let state = {};
+let saveTimer = null;
+let pendingAddPost = null;
+let pendingAddCap = null;
+// allMonths = MONTHS + any user-added future months
+let allMonths = [];
+
+function getAllMonths() { return allMonths; }
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+// ── DATE HELPERS ──────────────────────────────────────────────────────────────
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_NUMS = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+
+function monthYearFromId(mid) {
+  // e.g. 'apr' -> {month:4,year:2026}, 'jan2027' -> {month:1,year:2027}
+  const m = allMonths.find(x => x.id === mid);
+  if (!m) return {month:1,year:2026};
+  const parts = m.name.split(' '); // e.g. ['April','2026']
+  return { month: new Date(`${parts[0]} 1, ${parts[1]}`).getMonth()+1, year: parseInt(parts[1]) };
+}
+
+function dateKey(year, month, day) {
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+
+function todayKey() {
+  const t = new Date();
+  return dateKey(t.getFullYear(), t.getMonth()+1, t.getDate());
+}
+
+// Convert old week/day seed structure → date-keyed posts for a month
+function migrateSeedWeeks(mid, weeks) {
+  const posts = {}; // { 'YYYY-MM-DD': [{plat,topic}, ...] }
+  const { month, year } = monthYearFromId(mid);
+  // Build a date lookup from the seed data: try to parse dates like "Apr 1"
+  weeks.forEach(wk => {
+    wk.days.forEach(d => {
+      if (!d.date || !d.posts || d.posts.length === 0) return;
+      try {
+        const parsed = new Date(`${d.date}, ${year}`);
+        if (isNaN(parsed)) return;
+        const key = dateKey(parsed.getFullYear(), parsed.getMonth()+1, parsed.getDate());
+        posts[key] = d.posts.map(p => ({plat: p.plat||'ig', topic: p.topic||''}));
+      } catch(e) {}
+    });
+  });
+  return posts;
+}
+
+// ── CLOUD SYNC (JSONBin) ───────────────────────────────────────────────────────
+const JBIN_KEY  = '$2a$10$NPkBzJaQoRW5PyIHUoe4i.pcS3VEtnUnsHjqGMYoQQKByj4rwUdH.';
+const JBIN_BASE = 'https://api.jsonbin.io/v3';
+const LS_BIN_ID = 'hellas_planner_bin_id';
+
+let binId = localStorage.getItem(LS_BIN_ID) || null;
+let cloudSaveTimer = null;
+let isSyncing = false;
+
+function setSaveIndicator(msg, cls) {
+  const ind = document.getElementById('saveInd');
+  if (!ind) return;
+  ind.className = 'save-indicator' + (cls ? ' ' + cls : '');
+  ind.innerHTML = `<span class="save-dot"></span>${msg}`;
+}
+
+// Build a clean state snapshot to push to the cloud
+function buildSnapshot() {
+  state.__extraMonths = allMonths.filter(m => !MONTHS.find(bm => bm.id === m.id));
+  return state;
+}
+
+// Merge cloud data into local state (cloud wins for any key it has)
+function mergeCloud(cloudData) {
+  Object.assign(state, cloudData);
+}
+
+// Apply state to allMonths (re-hydrate extra months from cloud)
+function applyStateToMonths() {
+  allMonths = deepClone(MONTHS);
+  if (state.__extraMonths) {
+    state.__extraMonths.forEach(em => {
+      if (!allMonths.find(m => m.id === em.id)) allMonths.push(em);
+    });
+  }
+  allMonths.forEach(m => {
+    if (!state[m.id]) {
+      state[m.id] = {
+        posts: migrateSeedWeeks(m.id, m.weeks || []),
+        captions: deepClone(m.captions || [])
+      };
+    } else if (!state[m.id].posts && state[m.id].weeks) {
+      state[m.id].posts = migrateSeedWeeks(m.id, state[m.id].weeks);
+      state[m.id].captions = state[m.id].captions || [];
+      delete state[m.id].weeks;
+    } else if (!state[m.id].posts) {
+      state[m.id].posts = {};
+      state[m.id].captions = state[m.id].captions || [];
+    }
+  });
+}
+
+async function createBin(snapshot) {
+  const res = await fetch(`${JBIN_BASE}/b`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JBIN_KEY,
+      'X-Bin-Name': 'Hellas Content Planner',
+      'X-Bin-Private': 'false'
+    },
+    body: JSON.stringify(snapshot)
+  });
+  if (!res.ok) throw new Error('Create bin failed: ' + res.status);
+  const data = await res.json();
+  return data.metadata.id;
+}
+
+async function readBin(id) {
+  const res = await fetch(`${JBIN_BASE}/b/${id}/latest`, {
+    headers: { 'X-Master-Key': JBIN_KEY }
+  });
+  if (!res.ok) throw new Error('Read bin failed: ' + res.status);
+  const data = await res.json();
+  return data.record;
+}
+
+async function writeBin(id, snapshot) {
+  const res = await fetch(`${JBIN_BASE}/b/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JBIN_KEY
+    },
+    body: JSON.stringify(snapshot)
+  });
+  if (!res.ok) throw new Error('Write bin failed: ' + res.status);
+}
+
+async function loadState() {
+  setSaveIndicator('Connecting…', '');
+
+  // First apply seed data so the app can render while we fetch
+  applyStateToMonths();
+
+  try {
+    if (binId) {
+      // Try to load from cloud
+      const cloud = await readBin(binId);
+      mergeCloud(cloud);
+      applyStateToMonths();
+      setSaveIndicator('Synced with cloud ✓', 'saved');
+    } else {
+      // No bin yet — create one with the seed state
+      setSaveIndicator('Setting up cloud sync…', '');
+      const snapshot = buildSnapshot();
+      binId = await createBin(snapshot);
+      localStorage.setItem(LS_BIN_ID, binId);
+      setSaveIndicator('Cloud sync ready ✓', 'saved');
+    }
+  } catch(e) {
+    console.warn('Cloud sync error:', e);
+    setSaveIndicator('Offline — changes save locally', '');
+    // Fall back to localStorage
+    try {
+      const raw = localStorage.getItem('hellas_planner_v4');
+      if (raw) { mergeCloud(JSON.parse(raw)); applyStateToMonths(); }
+    } catch(e2) {}
+  }
+  setTimeout(() => setSaveIndicator('All changes saved', 'saved'), 3000);
+}
+
+function saveState() {
+  // Always write to localStorage immediately as a backup
+  try { localStorage.setItem('hellas_planner_v4', JSON.stringify(buildSnapshot())); } catch(e) {}
+
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async () => {
+    if (isSyncing) return;
+    isSyncing = true;
+    setSaveIndicator('Saving…', '');
+    try {
+      const snapshot = buildSnapshot();
+      if (!binId) {
+        binId = await createBin(snapshot);
+        localStorage.setItem(LS_BIN_ID, binId);
+      } else {
+        await writeBin(binId, snapshot);
+      }
+      setSaveIndicator('Saved to cloud ✓', 'saved');
+      setTimeout(() => setSaveIndicator('All changes saved', 'saved'), 2000);
+    } catch(e) {
+      console.warn('Cloud save failed:', e);
+      setSaveIndicator('Saved locally (offline)', '');
+    } finally {
+      isSyncing = false;
+    }
+  }, 800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await loadState();
+  renderMonths();
+  setTimeout(() => {
+    document.querySelectorAll('textarea').forEach(ta => autoResize(ta));
+  }, 200);
+})();
+function platClass(plat) { return {ig:'pi-ig',li:'pi-li',fb:'pi-fb',tw:'pi-tw'}[plat]||'pi-tw'; }
+function platLabel(plat) { return {ig:'Instagram',li:'LinkedIn',fb:'Facebook',tw:'X (Twitter)'}[plat]||plat; }
+function pbClass(plat) { return {ig:'pb-ig',li:'pb-li',fb:'pb-fb',tw:'pb-tw',all:'pb-all'}[plat]||'pb-all'; }
+
+function renderSidebar() {
+  const sbEl = document.getElementById('sidebar-months');
+  if (!sbEl) return;
+  const quarters = {};
+  allMonths.forEach(m => {
+    const q = m.q || 'Custom';
+    if (!quarters[q]) quarters[q] = [];
+    quarters[q].push(m);
+  });
+  sbEl.innerHTML = Object.entries(quarters).map(([q, months]) => {
+    const yr = months[0].name.split(' ')[1] || '2026';
+    return `
+      <div class="sb-section">${q} ${yr}</div>
+      ${months.map(m => `
+        <div class="sb-tab" id="sb-${m.id}" onclick="showMonth('${m.id}',this)">
+          <div class="sb-num">${m.num}</div>
+          <div><span class="sb-name">${m.name.split(' ')[0]}</span><span class="sb-theme">${m.theme}</span></div>
+        </div>
+      `).join('')}
+      <div class="sb-div"></div>
+    `;
+  }).join('');
+}
+
+function ensurePageDiv(mid) {
+  const pagesEl = document.getElementById('month-pages');
+  if (!pagesEl) return;
+  if (!document.getElementById('page-' + mid)) {
+    const div = document.createElement('div');
+    div.className = 'page';
+    div.id = 'page-' + mid;
+    pagesEl.appendChild(div);
+  }
+}
+
+function renderMonths() {
+  renderSidebar();
+  allMonths.forEach(m => {
+    ensurePageDiv(m.id);
+    renderMonth(m);
+  });
+}
+
+function renderMonth(m) {
+  const ms = state[m.id];
+  if (!ms) return;
+  const el = document.getElementById('page-' + m.id);
+  if (!el) return;
+
+  const calId = 'cal-' + m.id;
+  const capsId = 'caps-' + m.id;
+
+  el.innerHTML = `
+    <div class="edit-banner">
+      <div><strong>✏️ Edit mode is always on</strong> — click any text to edit it in place. Changes save automatically to your browser.</div>
+      <div class="edit-banner-tip">Tip: Use the "Add Post" button on any day, or "Add Caption" to build your library.</div>
+    </div>
+    <div class="mh">
+      <div>
+        <div class="mh-eyebrow">Month ${m.num} of 6 · ${m.q} 2026</div>
+        <div class="mh-title">${m.name}</div>
+        <div class="mh-badge">Theme: ${m.theme}</div>
+      </div>
+      <div class="mh-right">
+        <div class="view-tog">
+          <button class="vt active" id="vt-cal-${m.id}" onclick="showCal('${m.id}')">Calendar</button>
+          <button class="vt" id="vt-cap-${m.id}" onclick="showCaps('${m.id}')">Captions</button>
+        </div>
+      </div>
+    </div>
+    <div class="goal-row">
+      <span class="gc gc-aware">Brand Awareness</span>
+      <span class="gc gc-market">Market Share</span>
+    </div>
+    <div class="stats">
+      <div class="sc"><div class="sc-lbl">Monthly Focus</div><div class="sc-val" style="font-size:1.1rem;padding-top:3px">${m.focus}</div></div>
+      <div class="sc"><div class="sc-lbl">Top Platform</div><div class="sc-val" style="font-size:1.1rem;padding-top:3px">${m.topPlat}</div></div>
+      <div class="sc"><div class="sc-lbl">Key Content</div><div class="sc-val" style="font-size:1.1rem;padding-top:3px">${m.keyContent}</div></div>
+      <div class="sc"><div class="sc-lbl">Theme</div><div class="sc-val" style="font-size:1.1rem;padding-top:3px">${m.theme}</div></div>
+    </div>
+    <div id="${calId}">${renderCal(m.id)}</div>
+    <div id="${capsId}" style="display:none">${renderCaps(m.id, ms.captions)}</div>
+  `;
+}
+
+function renderCal(mid) {
+  const { month, year } = monthYearFromId(mid);
+  const today = todayKey();
+  // First day of month, find the Sunday that starts the first week
+  const firstOfMonth = new Date(year, month-1, 1);
+  const startSunday = new Date(firstOfMonth);
+  startSunday.setDate(1 - firstOfMonth.getDay()); // back up to Sunday
+
+  const lastOfMonth = new Date(year, month, 0); // last day of month
+  // End on the Saturday of the week containing the last day
+  const endSaturday = new Date(lastOfMonth);
+  endSaturday.setDate(lastOfMonth.getDate() + (6 - lastOfMonth.getDay()));
+
+  const weeks = [];
+  const cur = new Date(startSunday);
+  while (cur <= endSaturday) {
+    const weekDays = [];
+    for (let d = 0; d < 7; d++) {
+      weekDays.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(weekDays);
+  }
+
+  const weekNum = (i) => {
+    const d = weeks[i][0];
+    const mn = d.toLocaleString('default',{month:'short'});
+    const d1 = weeks[i][0].getDate(), d7 = weeks[i][6].getDate();
+    const mn2 = weeks[i][6].toLocaleString('default',{month:'short'});
+    return `Week ${i+1} · ${mn} ${d1}${mn !== mn2 ? ' – '+mn2+' '+d7 : ' – '+d7}`;
+  };
+
+  return weeks.map((days, wi) => `
+    <div class="week">
+      <div class="wk-label">${weekNum(wi)}</div>
+      <div class="wk-grid">
+        ${days.map((date, di) => {
+          const y = date.getFullYear(), mo = date.getMonth()+1, dd = date.getDate();
+          const key = dateKey(y, mo, dd);
+          const inMonth = (mo === month);
+          const isToday = (key === today);
+          const isWeekend = (di === 0 || di === 6);
+          const posts = (state[mid] && state[mid].posts && state[mid].posts[key]) || [];
+          const dayName = DAY_NAMES[di];
+          const dateLabel = date.toLocaleString('default',{month:'short'}) + ' ' + dd;
+          return `
+            <div class="day${isWeekend?' is-weekend':''}${isToday?' is-today':''}" style="${!inMonth?'opacity:0.45':''}">
+              <div class="day-hd">
+                <span class="day-nm">${dayName}</span>
+                <span class="day-dt">${dateLabel}</span>
+              </div>
+              <div class="day-posts" id="dp-${mid}-${key}"
+                ondragover="handleDragOver(event,this)"
+                ondragleave="handleDragLeave(event,this)"
+                ondrop="handleDrop(event,this,'${mid}','${key}')">
+                ${posts.map((p, pi) => renderPost(mid, key, pi, p)).join('')}
+                ${posts.length === 0 ? `<div class="day-empty">${isWeekend?'Weekend':'—'}</div>` : ''}
+                <button class="add-post-btn" onclick="openAddPost('${mid}','${key}')">+ Add</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPost(mid, dateKey, pi, p) {
+  const platColors = {ig:'var(--ig)',li:'var(--li)',fb:'var(--fb)',tw:'#444'};
+  const platNames = {ig:'Instagram',li:'LinkedIn',fb:'Facebook',tw:'X (Twitter)'};
+  const plats = p.plats && p.plats.length ? p.plats : (p.plat ? [p.plat] : ['ig']);
+  const status = p.status || '';
+  const statusCls = status ? `ps-${status}` : '';
+  const preview = (p.topic||'').slice(0,68) + ((p.topic||'').length > 68 ? '…' : '');
+
+  const platDots = plats.map(pl =>
+    `<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${platColors[pl]||'#444'};font-family:'Barlow',sans-serif">
+      <span style="width:6px;height:6px;border-radius:50%;background:${platColors[pl]||'#444'};flex-shrink:0;display:inline-block"></span>${platNames[pl]||pl}
+    </span>`
+  ).join('<span style="color:var(--gray-300);font-size:9px;margin:0 1px">·</span>');
+
+  const statusBadge = status
+    ? `<span class="post-status-badge psb-${status}">${status==='posted'?'Posted':status==='approved'?'Approved':'Review'}</span>`
+    : '';
+
+  const bgMap = {ig:'var(--ig-light)',li:'var(--li-light)',fb:'var(--fb-light)',tw:'var(--tw-light)'};
+  const bg = bgMap[plats[0]] || 'var(--gray-100)';
+  const dragData = JSON.stringify({mid, key: dateKey, pi});
+
+  return `
+    <div class="post ${statusCls}" id="post-${mid}-${dateKey}-${pi}"
+      draggable="true"
+      data-drag='${dragData.replace(/'/g,"&#39;")}'
+      style="cursor:pointer;position:relative;background:${bg};border-radius:var(--radius-sm);padding:5px 7px;border:1px solid transparent;transition:border-color 0.1s,opacity 0.15s"
+      onmouseover="if(!this.classList.contains('dragging'))this.style.borderColor='#4a90e2'"
+      onmouseout="if(!this.classList.contains('dragging'))this.style.borderColor='transparent'"
+      onclick="openEditPost('${mid}','${dateKey}',${pi})"
+      ondragstart="handleDragStart(event,this)"
+      ondragend="handleDragEnd(event,this)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:3px">
+        <span class="drag-handle" title="Drag to move" onclick="event.stopPropagation()">⠿</span>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;flex:1;min-width:0">${platDots}</div>
+        <button class="pa-btn" title="Delete" style="pointer-events:all;flex-shrink:0;margin-top:-1px" onclick="event.stopPropagation();deletePost('${mid}','${dateKey}',${pi})">✕</button>
+      </div>
+      <div style="font-size:10.5px;line-height:1.35;color:var(--gray-700);font-family:'Barlow',sans-serif">${escHtml(preview)||'<span style="color:var(--gray-400);font-style:italic">Click to add…</span>'}</div>
+      ${statusBadge}
+    </div>
+  `;
+}
+
+function redrawDay(mid, key) {
+  const dp = document.getElementById(`dp-${mid}-${key}`);
+  if (!dp) return;
+  const posts = (state[mid] && state[mid].posts && state[mid].posts[key]) || [];
+  const isWeekend = (() => { const d = new Date(key+'T00:00:00'); return d.getDay()===0||d.getDay()===6; })();
+  dp.innerHTML =
+    posts.map((p, pi) => renderPost(mid, key, pi, p)).join('') +
+    (posts.length === 0 ? `<div class="day-empty">${isWeekend?'Weekend':'—'}</div>` : '') +
+    `<button class="add-post-btn" onclick="openAddPost('${mid}','${key}')">+ Add</button>`;
+  // Re-attach drop handlers (lost when innerHTML is replaced)
+  dp.ondragover = (e) => handleDragOver(e, dp);
+  dp.ondragleave = (e) => handleDragLeave(e, dp);
+  dp.ondrop = (e) => handleDrop(e, dp, mid, key);
+}
+
+function renderCaps(mid, captions) {
+  const cats = [...new Set(captions.map(c => c.cat || 'general'))];
+  return `
+    <div class="cap-section">
+      <div style="background:var(--green-xlight);border:1px solid rgba(26,92,56,0.15);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--green-mid);display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">💡</span>
+        <span><strong>Need a hook?</strong> Visit the <span style="cursor:pointer;text-decoration:underline;font-weight:600" onclick="showPage('engine',document.getElementById('sb-engine'))">Content Engine</span> for 100 ready-to-use post hooks and 5 brand caption templates you can copy and paste directly into any caption below.</span>
+      </div>
+      <div class="cap-sec-hd">
+        <div class="cap-sec-title">Caption Library — ${allMonths.find(m=>m.id===mid).name}</div>
+        <button class="add-cap-btn" onclick="openAddCap('${mid}')">+ Add Caption</button>
+      </div>
+      <div class="filter-row" id="filters-${mid}">
+        <button class="fp active" onclick="filterCaps('${mid}','all',this)">All</button>
+        ${cats.map(c => `<button class="fp" onclick="filterCaps('${mid}','${c}',this)">${capCatLabel(c)}</button>`).join('')}
+      </div>
+      <div class="caps-grid" id="caps-grid-${mid}">
+        ${captions.map((c, ci) => renderCap(mid, ci, c)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function capCatLabel(cat) {
+  const map = {showcase:'Showcase',education:'Education',community:'Community',brand:'Brand',proof:'Social Proof',market:'Market Share',season:'Season Hype',close:'Close/Convert',recap:'Recap',general:'General',vi:'Vertical Integration',project:'Project',turf:'Turf Systems',track:'Track',tennis:'Tennis',lighting:'Lighting',people:'People of Hellas',tradeshow:'Trade Shows'};
+  return map[cat] || cat.charAt(0).toUpperCase() + cat.slice(1);
+}
+
+function renderCap(mid, ci, c) {
+  const statusCls = c.status === 'approved' ? 'status-approved' : c.status === 'review' ? 'status-review' : '';
+  return `
+    <div class="cap-card ${statusCls}" id="cap-${mid}-${ci}" data-cat="${c.cat||'general'}">
+      <div class="cap-meta">
+        <select class="pb pb-select ${pbClass(c.plat)}" onchange="updateCapField('${mid}',${ci},'plat',this.value);updateCapPlatStyle(this)">
+          <option value="ig"${c.plat==='ig'?' selected':''}>Instagram</option>
+          <option value="li"${c.plat==='li'?' selected':''}>LinkedIn</option>
+          <option value="fb"${c.plat==='fb'?' selected':''}>Facebook</option>
+          <option value="tw"${c.plat==='tw'?' selected':''}>X (Twitter)</option>
+          <option value="all"${c.plat==='all'?' selected':''}>All Platforms</option>
+        </select>
+        <textarea class="editable pillar-sm" rows="1" style="width:auto;flex:1;min-width:100px;font-size:10px"
+          oninput="autoResize(this)" onchange="updateCapField('${mid}',${ci},'pillar',this.value)"
+          placeholder="Pillar / label...">${escHtml(c.pillar||'')}</textarea>
+      </div>
+      <textarea class="editable cap-text-edit" rows="6"
+        oninput="autoResize(this)" onchange="updateCapField('${mid}',${ci},'text',this.value)"
+        placeholder="Write your caption here...">${escHtml(c.text||'')}</textarea>
+      <textarea class="editable cap-tags-edit" rows="2"
+        oninput="autoResize(this)" onchange="updateCapField('${mid}',${ci},'tags',this.value)"
+        placeholder="#hashtags...">${escHtml(c.tags||'')}</textarea>
+      <textarea class="editable cap-note-edit" rows="1"
+        oninput="autoResize(this)" onchange="updateCapField('${mid}',${ci},'note',this.value)"
+        placeholder="Designer note (optional)...">${escHtml(c.note||'')}</textarea>
+      <div class="cap-actions">
+        <button class="ca-btn ca-copy" onclick="copyCaption(this,'${mid}',${ci})">Copy</button>
+        <button class="ca-btn ca-approve" onclick="setCapStatus('${mid}',${ci},'approved',this)">✓ Approve</button>
+        <button class="ca-btn ca-review" onclick="setCapStatus('${mid}',${ci},'review',this)">Needs Review</button>
+        <button class="ca-btn ca-del" onclick="deleteCap('${mid}',${ci})">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── UI ACTIONS ────────────────────────────────────────────────────────────────
+function activateSidebarItem(el) {
+  document.querySelectorAll('.sb-tab,.sb-link').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + id);
+  if (target) target.classList.add('active');
+  activateSidebarItem(el);
+  if (id === 'engine') renderEnginePage();
+}
+
+function showMonth(mid, el) {
+  // Make sure page div exists and is rendered
+  ensurePageDiv(mid);
+  const m = allMonths.find(x => x.id === mid);
+  if (m) renderMonth(m);
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + mid);
+  if (target) target.classList.add('active');
+  activateSidebarItem(el);
+
+  // Show calendar tab by default
+  const cal = document.getElementById('cal-' + mid);
+  const caps = document.getElementById('caps-' + mid);
+  if (cal) cal.style.display = '';
+  if (caps) caps.style.display = 'none';
+  const vtCal = document.getElementById('vt-cal-' + mid);
+  const vtCap = document.getElementById('vt-cap-' + mid);
+  if (vtCal) { vtCal.classList.add('active'); }
+  if (vtCap) { vtCap.classList.remove('active'); }
+
+  // Resize textareas
+  if (target) target.querySelectorAll('textarea').forEach(ta => autoResize(ta));
+}
+
+function showCal(mid) {
+  const cal = document.getElementById('cal-' + mid);
+  const caps = document.getElementById('caps-' + mid);
+  if (cal) cal.style.display = '';
+  if (caps) caps.style.display = 'none';
+  const vtCal = document.getElementById('vt-cal-' + mid);
+  const vtCap = document.getElementById('vt-cap-' + mid);
+  if (vtCal) vtCal.classList.add('active');
+  if (vtCap) vtCap.classList.remove('active');
+}
+
+function showCaps(mid) {
+  const cal = document.getElementById('cal-' + mid);
+  const caps = document.getElementById('caps-' + mid);
+  if (cal) cal.style.display = 'none';
+  if (caps) { caps.style.display = ''; caps.innerHTML = renderCaps(mid, state[mid].captions); }
+  const vtCal = document.getElementById('vt-cal-' + mid);
+  const vtCap = document.getElementById('vt-cap-' + mid);
+  if (vtCal) vtCal.classList.remove('active');
+  if (vtCap) vtCap.classList.add('active');
+}
+
+// ── POST EDITS ────────────────────────────────────────────────────────────────
+function ensureDatePosts(mid, key) {
+  if (!state[mid].posts) state[mid].posts = {};
+  if (!state[mid].posts[key]) state[mid].posts[key] = [];
+}
+function updatePostTopic(mid, key, pi, val) {
+  ensureDatePosts(mid, key);
+  if (state[mid].posts[key][pi]) state[mid].posts[key][pi].topic = val;
+  saveState();
+}
+function updatePostPlat(mid, key, pi, val) {
+  ensureDatePosts(mid, key);
+  if (state[mid].posts[key][pi]) state[mid].posts[key][pi].plat = val;
+  redrawDay(mid, key);
+  saveState();
+}
+function deletePost(mid, key, pi) {
+  ensureDatePosts(mid, key);
+  state[mid].posts[key].splice(pi, 1);
+  redrawDay(mid, key);
+  saveState();
+}
+
+// ── CAPTION EDITS ─────────────────────────────────────────────────────────────
+function updateCapField(mid, ci, field, val) {
+  state[mid].captions[ci][field] = val;
+  saveState();
+}
+function updateCapPlatStyle(sel) {
+  const val = sel.value;
+  sel.className = `pb pb-select ${pbClass(val)}`;
+}
+function setCapStatus(mid, ci, status, btn) {
+  const card = document.getElementById(`cap-${mid}-${ci}`);
+  const current = state[mid].captions[ci].status;
+  const newStatus = current === status ? '' : status;
+  state[mid].captions[ci].status = newStatus;
+  if (card) {
+    card.classList.remove('status-approved','status-review');
+    if (newStatus) card.classList.add('status-' + newStatus);
+  }
+  saveState();
+}
+function deleteCap(mid, ci) {
+  if (!confirm('Delete this caption?')) return;
+  state[mid].captions.splice(ci, 1);
+  const caps = document.getElementById('caps-' + mid);
+  if (caps) caps.innerHTML = renderCaps(mid, state[mid].captions);
+  saveState();
+}
+function copyCaption(btn, mid, ci) {
+  const c = state[mid].captions[ci];
+  const text = (c.text || '') + (c.tags ? '\n\n' + c.tags : '');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function filterCaps(mid, cat, btn) {
+  const grid = document.getElementById('caps-grid-' + mid);
+  if (!grid) return;
+  grid.querySelectorAll('.cap-card').forEach(c => {
+    c.classList.toggle('hidden', cat !== 'all' && c.dataset.cat !== cat);
+  });
+  const filtersEl = document.getElementById('filters-' + mid);
+  filtersEl?.querySelectorAll('.fp').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── DRAG AND DROP ─────────────────────────────────────────────────────────────
+let dragSrc = null; // { mid, fromKey, pi }
+
+function handleDragStart(e, el) {
+  try {
+    dragSrc = JSON.parse(el.dataset.drag);
+  } catch(err) { dragSrc = null; return; }
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', el.dataset.drag);
+  // Slight delay so the element is visible while pickup animation plays
+  setTimeout(() => el.classList.add('dragging'), 0);
+}
+
+function handleDragEnd(e, el) {
+  el.classList.remove('dragging');
+  el.style.borderColor = 'transparent';
+  // Clean up any lingering drag-over highlights
+  document.querySelectorAll('.day-posts.drag-over').forEach(dp => dp.classList.remove('drag-over'));
+  dragSrc = null;
+}
+
+function handleDragOver(e, dp) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  dp.classList.add('drag-over');
+}
+
+function handleDragLeave(e, dp) {
+  // Only remove if leaving the container itself, not a child
+  if (!dp.contains(e.relatedTarget)) {
+    dp.classList.remove('drag-over');
+  }
+}
+
+function handleDrop(e, dp, toMid, toKey) {
+  e.preventDefault();
+  dp.classList.remove('drag-over');
+  if (!dragSrc) return;
+  const { mid: fromMid, key: fromKey, pi: fromPi } = dragSrc;
+  // Same cell — no-op
+  if (fromMid === toMid && fromKey === toKey) return;
+
+  ensureDatePosts(fromMid, fromKey);
+  ensureDatePosts(toMid, toKey);
+
+  // Lift the post out of its source
+  const [movedPost] = state[fromMid].posts[fromKey].splice(fromPi, 1);
+  // Drop it at the end of the target day
+  state[toMid].posts[toKey].push(movedPost);
+
+  // Redraw both days
+  redrawDay(fromMid, fromKey);
+  if (fromMid !== toMid || fromKey !== toKey) redrawDay(toMid, toKey);
+
+  saveState();
+  dragSrc = null;
+}
+
+// ── ADD / EDIT POST MODAL ─────────────────────────────────────────────────────
+let editingPost = null;
+
+function togglePlat(btn) { btn.classList.toggle('active'); }
+
+function getSelectedPlats() {
+  return [...document.querySelectorAll('#mp-plat-grid .plat-pick.active')].map(b => b.dataset.plat);
+}
+function setModalPlats(plats) {
+  document.querySelectorAll('#mp-plat-grid .plat-pick').forEach(b => {
+    b.classList.toggle('active', plats.includes(b.dataset.plat));
+  });
+}
+function selectStatus(btn) {
+  document.querySelectorAll('#mp-status-btns .status-pick').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function getSelectedStatus() {
+  const a = document.querySelector('#mp-status-btns .status-pick.active');
+  return a ? a.dataset.status : '';
+}
+function setModalStatus(status) {
+  document.querySelectorAll('#mp-status-btns .status-pick').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === (status||''));
+  });
+}
+
+function selectPillar(btn) {
+  document.querySelectorAll('#mp-pillar-btns .hook-pillar-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const pillar = btn.dataset.pillar;
+  const sel = document.getElementById('mp-hook');
+  sel.innerHTML = '<option value="">— Select a hook to pre-fill —</option>';
+  const filtered = pillar === 'all' ? HOOKS : HOOKS.filter(h => h.pillar === pillar);
+  filtered.forEach(h => {
+    const i = HOOKS.indexOf(h);
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = (PILLAR_META[h.pillar] ? '[' + PILLAR_META[h.pillar].label + '] ' : '') + h.text;
+    sel.appendChild(opt);
+  });
+  sel.value = '';
+}
+
+function applyHook(val) {
+  if (!val) return;
+  const hook = HOOKS[parseInt(val)];
+  if (!hook) return;
+  const ta = document.getElementById('mp-topic');
+  ta.value = hook.text;
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+  ta.focus();
+  const badge = document.getElementById('mp-hook-badge');
+  if (badge) badge.style.display = 'inline';
+}
+
+function openAddPost(mid, key) {
+  editingPost = null;
+  pendingAddPost = { mid, key };
+  document.getElementById('mp-title').textContent = 'Create Post';
+  document.getElementById('mp-confirm-btn').textContent = 'Add Post';
+  document.getElementById('mp-hook-section').style.display = '';
+  document.getElementById('mp-tmpl-row').style.display = '';
+  document.getElementById('mp-topic').value = '';
+  document.getElementById('mp-topic').style.height = 'auto';
+  document.getElementById('mp-hook-badge').style.display = 'none';
+  document.getElementById('mp-tmpl').value = '';
+  setModalPlats([]);
+  setModalStatus('');
+  document.querySelectorAll('#mp-pillar-btns .hook-pillar-btn').forEach(b => b.classList.remove('active'));
+  const allBtn = document.querySelector('#mp-pillar-btns [data-pillar="all"]');
+  if (allBtn) { allBtn.classList.add('active'); selectPillar(allBtn); }
+  document.getElementById('addPostModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('mp-topic').focus(), 80);
+}
+
+function openEditPost(mid, key, pi) {
+  ensureDatePosts(mid, key);
+  const post = state[mid].posts[key][pi];
+  if (!post) return;
+  editingPost = { mid, key, pi };
+  pendingAddPost = null;
+  document.getElementById('mp-title').textContent = 'Edit Post';
+  document.getElementById('mp-confirm-btn').textContent = 'Save Changes';
+  document.getElementById('mp-hook-section').style.display = 'none';
+  document.getElementById('mp-tmpl-row').style.display = 'none';
+  document.getElementById('mp-hook-badge').style.display = 'none';
+  const plats = post.plats && post.plats.length ? post.plats : (post.plat ? [post.plat] : ['ig']);
+  setModalPlats(plats);
+  setModalStatus(post.status || '');
+  const ta = document.getElementById('mp-topic');
+  ta.value = post.topic || '';
+  ta.style.height = 'auto';
+  ta.style.height = Math.max(ta.scrollHeight, 80) + 'px';
+  document.getElementById('addPostModal').classList.remove('hidden');
+  setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 80);
+}
+
+function submitAddPost() {
+  const topic = document.getElementById('mp-topic').value.trim();
+  const plats = getSelectedPlats();
+  const status = getSelectedStatus();
+  if (!topic) {
+    const ta = document.getElementById('mp-topic');
+    ta.style.borderColor = '#e03';
+    ta.focus();
+    setTimeout(() => { ta.style.borderColor = ''; }, 1500);
+    return;
+  }
+  if (plats.length === 0) {
+    document.querySelectorAll('#mp-plat-grid .plat-pick').forEach(b => {
+      b.style.borderColor = '#e03';
+      setTimeout(() => { b.style.borderColor = ''; }, 1500);
+    });
+    return;
+  }
+  if (editingPost) {
+    const { mid, key, pi } = editingPost;
+    ensureDatePosts(mid, key);
+    state[mid].posts[key][pi] = { plats, topic, status };
+    redrawDay(mid, key);
+    saveState();
+    closeModal('addPostModal');
+    return;
+  }
+  const { mid, key } = pendingAddPost;
+  ensureDatePosts(mid, key);
+  const tmplIdx = document.getElementById('mp-tmpl').value;
+  if (tmplIdx !== '') {
+    const t = TEMPLATES[parseInt(tmplIdx)];
+    if (t) state[mid].captions.push({ plat: plats[0]||'ig', pillar: t.label, cat: t.type, text: t.text, tags: '', note: t.note, status: '' });
+  }
+  state[mid].posts[key].push({ plats, topic, status });
+  redrawDay(mid, key);
+  saveState();
+  closeModal('addPostModal');
+}
+
+// ── ADD CAPTION MODAL ─────────────────────────────────────────────────────────
+function openAddCap(mid) {
+  pendingAddCap = { mid };
+  document.getElementById('mc-text').value = '';
+  document.getElementById('mc-tags').value = '';
+  document.getElementById('mc-note').value = '';
+  document.getElementById('mc-pillar').value = '';
+  document.getElementById('addCapModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('mc-text').focus(), 50);
+}
+function submitAddCap() {
+  if (!pendingAddCap) return;
+  const { mid } = pendingAddCap;
+  const plat = document.getElementById('mc-plat').value;
+  const pillar = document.getElementById('mc-pillar').value.trim();
+  const text = document.getElementById('mc-text').value.trim();
+  const tags = document.getElementById('mc-tags').value.trim();
+  const note = document.getElementById('mc-note').value.trim();
+  const cat = pillar.toLowerCase().replace(/[^a-z0-9]/g,'') || 'general';
+  if (!text) { alert('Please enter caption copy.'); return; }
+  const newCap = { plat, pillar, cat, text, tags, note, status: '' };
+  state[mid].captions.push(newCap);
+  const ci = state[mid].captions.length - 1;
+  const grid = document.getElementById('caps-grid-' + mid);
+  if (grid) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderCap(mid, ci, newCap);
+    grid.appendChild(tmp.firstChild);
+  }
+  saveState();
+  closeModal('addCapModal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  pendingAddPost = null;
+  pendingAddCap = null;
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+async function refreshFromCloud() {
+  if (!binId) { setSaveIndicator('No cloud connection yet', ''); return; }
+  setSaveIndicator('Refreshing…', '');
+  try {
+    const cloud = await readBin(binId);
+    mergeCloud(cloud);
+    applyStateToMonths();
+    renderMonths();
+    setTimeout(() => document.querySelectorAll('textarea').forEach(ta => autoResize(ta)), 100);
+    setSaveIndicator('Refreshed ✓', 'saved');
+    setTimeout(() => setSaveIndicator('All changes saved', 'saved'), 2000);
+  } catch(e) {
+    setSaveIndicator('Refresh failed — check connection', '');
+  }
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hellas_content_plan.json';
+  a.click();
+}
+
+function confirmReset() {
+  if (confirm('Reset ALL content to the original plan? This cannot be undone for anyone on the team.')) {
+    localStorage.removeItem('hellas_planner_v4');
+    localStorage.removeItem(LS_BIN_ID);
+    location.reload();
+  }
+}
+
+// close modals on bg click
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-bg')) {
+    e.target.classList.add('hidden');
+    pendingAddPost = null; pendingAddCap = null;
+  }
+});
+
+// ── ADD FUTURE MONTH ──────────────────────────────────────────────────────────
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function getQ(monthNum) {
+  if (monthNum<=3) return 'Q1'; if (monthNum<=6) return 'Q2';
+  if (monthNum<=9) return 'Q3'; return 'Q4';
+}
+
+function submitAddMonth() {
+  const monthNum = parseInt(document.getElementById('am-month').value);
+  const year = parseInt(document.getElementById('am-year').value);
+  const theme = document.getElementById('am-theme').value.trim() || 'Open Planning';
+  const monthName = MONTH_NAMES[monthNum - 1];
+  const id = monthName.toLowerCase().slice(0,3) + year;
+  if (allMonths.find(m => m.id === id)) {
+    alert(`${monthName} ${year} already exists in your planner.`); return;
+  }
+  const q = getQ(monthNum);
+  const newMonth = {
+    id, num: allMonths.length + 1, q, name: `${monthName} ${year}`, theme,
+    focus: 'Plan', topPlat: 'LinkedIn', keyContent: 'TBD', ctaGoal: 'TBD',
+    weeks: [
+      { label: `Week 1 · ${monthName} ${year}`, days: [
+        {name:'Mon',date:'',posts:[]},{name:'Tue',date:'',posts:[]},
+        {name:'Wed',date:'',posts:[]},{name:'Thu',date:'',posts:[]},{name:'Fri',date:'',posts:[]}
+      ]},
+      { label: `Week 2 · ${monthName} ${year}`, days: [
+        {name:'Mon',date:'',posts:[]},{name:'Tue',date:'',posts:[]},
+        {name:'Wed',date:'',posts:[]},{name:'Thu',date:'',posts:[]},{name:'Fri',date:'',posts:[]}
+      ]},
+      { label: `Week 3 · ${monthName} ${year}`, days: [
+        {name:'Mon',date:'',posts:[]},{name:'Tue',date:'',posts:[]},
+        {name:'Wed',date:'',posts:[]},{name:'Thu',date:'',posts:[]},{name:'Fri',date:'',posts:[]}
+      ]},
+      { label: `Week 4 · ${monthName} ${year}`, days: [
+        {name:'Mon',date:'',posts:[]},{name:'Tue',date:'',posts:[]},
+        {name:'Wed',date:'',posts:[]},{name:'Thu',date:'',posts:[]},{name:'Fri',date:'',posts:[]}
+      ]}
+    ],
+    captions: []
+  };
+
+  allMonths.push(newMonth);
+  state[id] = { posts: {}, captions: [] };
+
+  // Rebuild sidebar (preserves existing page divs)
+  renderSidebar();
+  // Create the page div if needed and render content into it
+  ensurePageDiv(id);
+  renderMonth(newMonth);
+
+  saveState();
+  closeModal('addMonthModal');
+
+  // Navigate to the new month
+  const tab = document.getElementById('sb-' + id);
+  showMonth(id, tab);
+}
+</script>
+</body>
+</html>
