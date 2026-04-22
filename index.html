@@ -289,7 +289,20 @@ body{font-family:'Barlow',sans-serif;background:var(--gray-50);color:var(--gray-
 .status-pick.active[data-status="approved"]{border-color:var(--green);background:var(--green-light);color:var(--green)}
 .status-pick.active[data-status="review"]{border-color:var(--gold);background:var(--gold-light);color:var(--gold)}
 .status-pick.active[data-status="posted"]{border-color:var(--li);background:var(--li-light);color:var(--li)}
-/* DRAG AND DROP */
+/* PASSWORD GATE */
+.pw-gate{position:fixed;inset:0;z-index:9999;background:#1c2b3a;display:flex;align-items:center;justify-content:center;font-family:'Barlow',sans-serif}
+.pw-box{background:white;border-radius:14px;padding:2.5rem 2rem;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.35)}
+.pw-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:800;color:#1c2b3a;letter-spacing:.04em;margin-bottom:4px}
+.pw-logo span{color:#1a5c38}
+.pw-sub{font-size:12px;color:#9aa1a9;margin-bottom:1.75rem;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.pw-input{width:100%;padding:10px 14px;border:1.5px solid #e2e4e6;border-radius:6px;font-size:15px;font-family:'Barlow',sans-serif;outline:none;text-align:center;letter-spacing:.08em;margin-bottom:10px;transition:border-color 0.15s}
+.pw-input:focus{border-color:#1a5c38;box-shadow:0 0 0 3px #e6f3ec}
+.pw-input.pw-error{border-color:#e03;animation:pw-shake 0.3s ease}
+@keyframes pw-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pw-btn{width:100%;padding:11px;background:#1a5c38;color:white;border:none;border-radius:6px;font-size:14px;font-weight:700;font-family:'Barlow',sans-serif;cursor:pointer;letter-spacing:.04em;transition:background 0.15s}
+.pw-btn:hover{background:#2a7a4e}
+.pw-err-msg{font-size:12px;color:#e03;margin-top:8px;height:16px;font-weight:600}
+  /* DRAG AND DROP */
 .post.dragging{opacity:0.35;transform:scale(0.97)}
 .day-posts.drag-over{outline:2px dashed var(--green);outline-offset:-2px;background:var(--green-xlight);border-radius:var(--radius-sm)}
 .drag-handle{cursor:grab;display:inline-block;color:var(--gray-300);font-size:11px;line-height:1;padding:0 2px;flex-shrink:0;user-select:none}
@@ -306,7 +319,17 @@ body{font-family:'Barlow',sans-serif;background:var(--gray-50);color:var(--gray-
 </style>
 </head>
 <body>
-
+<div class="pw-gate" id="pwGate">
+  <div class="pw-box">
+    <div class="pw-logo">HELLAS <span>·</span> Content Planner</div>
+    <div class="pw-sub">Team Access Only</div>
+    <input class="pw-input" id="pwInput" type="password" placeholder="Enter password"
+      onkeydown="if(event.key==='Enter')checkPassword()"
+      oninput="this.classList.remove('pw-error');document.getElementById('pwErrMsg').textContent=''">
+    <button class="pw-btn" onclick="checkPassword()">Enter Planner</button>
+    <div class="pw-err-msg" id="pwErrMsg"></div>
+  </div>
+</div>
 <!-- TOPBAR -->
 <div class="topbar">
   <div>
@@ -541,7 +564,39 @@ body{font-family:'Barlow',sans-serif;background:var(--gray-50);color:var(--gray-
 </div>
 
 <script>
-// ── DATA ──────────────────────────────────────────────────────────────────────
+<script>
+const PW_HASH = 'cc50911b7826393285f1c90b15763df5fc909aa874595dd1531d18bd426d345e';
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPassword() {
+  const input = document.getElementById('pwInput');
+  const hash = await hashPassword(input.value);
+  if (hash === PW_HASH) {
+    sessionStorage.setItem('hellas_auth', '1');
+    document.getElementById('pwGate').style.display = 'none';
+  } else {
+    input.classList.add('pw-error');
+    document.getElementById('pwErrMsg').textContent = 'Incorrect password. Try again.';
+    input.value = '';
+    setTimeout(() => input.focus(), 50);
+  }
+}
+
+(function() {
+  if (sessionStorage.getItem('hellas_auth') === '1') {
+    document.getElementById('pwGate').style.display = 'none';
+  } else {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => document.getElementById('pwInput').focus(), 100);
+    });
+  }
+})();
+</script>
+  // ── DATA ──────────────────────────────────────────────────────────────────────
 
 const HOOKS = [
   // Vertical Integration
